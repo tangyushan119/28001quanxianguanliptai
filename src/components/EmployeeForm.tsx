@@ -133,7 +133,7 @@ export default function EmployeeForm({
               </label>
               <Select
                 value={formData.gender}
-                onChange={(value) => handleChange('gender', value)}
+                onChange={(e) => handleChange('gender', (e.target as HTMLSelectElement).value)}
               >
                 <option value="male">男</option>
                 <option value="female">女</option>
@@ -186,7 +186,7 @@ export default function EmployeeForm({
               </label>
               <Select
                 value={formData.departmentId}
-                onChange={(value) => handleChange('departmentId', value)}
+                onChange={(e) => handleChange('departmentId', (e.target as HTMLSelectElement).value)}
                 status={errors.departmentId ? 'error' : 'default'}
               >
                 <option value="">请选择部门</option>
@@ -217,7 +217,7 @@ export default function EmployeeForm({
               </label>
               <Select
                 value={formData.employmentType}
-                onChange={(value) => handleChange('employmentType', value)}
+                onChange={(e) => handleChange('employmentType', (e.target as HTMLSelectElement).value)}
               >
                 <option value="full-time">全职</option>
                 <option value="part-time">兼职</option>
@@ -244,7 +244,7 @@ export default function EmployeeForm({
               </label>
               <Select
                 value={formData.status}
-                onChange={(value) => handleChange('status', value)}
+                onChange={(e) => handleChange('status', (e.target as HTMLSelectElement).value)}
               >
                 <option value="active">在职</option>
                 <option value="on-leave">休假</option>
