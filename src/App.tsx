@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DataManagement from './pages/DataManagement';
 import OrganizationManagement from './pages/OrganizationManagement';
+import EmployeeManagement from './pages/EmployeeManagement';
 import Layout from './components/Layout';
 import { useAuth } from './contexts/AuthContext';
 
@@ -75,6 +76,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <OrganizationManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee-management"
+          element={
+            <ProtectedRoute>
+              <EmployeeManagement />
             </ProtectedRoute>
           }
         />

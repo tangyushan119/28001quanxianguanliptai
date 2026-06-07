@@ -44,3 +44,36 @@ export interface Department {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Employee {
+  id: string;
+  name: string;
+  employeeId: string;
+  gender: 'male' | 'female';
+  birthDate: string;
+  phone: string;
+  email: string;
+  address?: string;
+  departmentId: string;
+  position: string;
+  employmentType: 'full-time' | 'part-time' | 'contract';
+  hireDate: string;
+  status: 'active' | 'on-leave' | 'resigned';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmployeeFormData {
+  name: string;
+  employeeId: string;
+  gender: 'male' | 'female';
+  birthDate: string;
+  phone: string;
+  email: string;
+  address?: string;
+  departmentId: string;
+  position: string;
+  employmentType: 'full-time' | 'part-time' | 'contract';
+  hireDate: string;
+  status: 'active' | 'on-leave' | 'resigned';
+}
