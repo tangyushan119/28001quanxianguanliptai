@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Plus, Edit, Archive, X, Check, Building2, Users, RefreshCw } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, Plus, Edit, Archive, X, Check, Building2, Users, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, File } from 'lucide-react';
 import { Organization, Department } from '@/types';
 import { Button, Input, Select, Card, CardHeader, CardTitle, CardBody, Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, Modal, Badge } from '@/components';
 
@@ -12,12 +12,15 @@ const mockOrganizations: Organization[] = [
 
 const mockDepartments: Department[] = [
   { id: '1', name: '综合科', code: 'ZH', organizationId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '文秘科', code: 'WM', organizationId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '3', name: '信息科', code: 'XX', organizationId: '1', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '4', name: '规划科', code: 'GH', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '5', name: '投资科', code: 'TZ', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '6', name: '预算科', code: 'YS', organizationId: '3', status: 'active', createdAt: '2024-01-04', updatedAt: '2024-01-04' },
-  { id: '7', name: '国库科', code: 'GK', organizationId: '3', status: 'archived', createdAt: '2024-01-04', updatedAt: '2024-05-15' },
+  { id: '2', name: '文秘科', code: 'WM', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
+  { id: '3', name: '机要室', code: 'JY', organizationId: '1', parentId: '2', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
+  { id: '4', name: '信息科', code: 'XX', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
+  { id: '5', name: '规划科', code: 'GH', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
+  { id: '6', name: '项目审批股', code: 'XM', organizationId: '2', parentId: '5', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
+  { id: '7', name: '投资科', code: 'TZ', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
+  { id: '8', name: '预算科', code: 'YS', organizationId: '3', status: 'active', createdAt: '2024-01-04', updatedAt: '2024-01-04' },
+  { id: '9', name: '国库科', code: 'GK', organizationId: '3', parentId: '8', status: 'archived', createdAt: '2024-01-04', updatedAt: '2024-05-15' },
+  { id: '10', name: '绩效评价股', code: 'JX', organizationId: '3', parentId: '8', status: 'active', createdAt: '2024-01-05', updatedAt: '2024-01-05' },
 ];
 
 type ActiveTab = 'organization' | 'department';
@@ -32,6 +35,15 @@ interface FormData {
   organizationId?: string;
 }
 
+interface FormData {
+  name: string;
+  code: string;
+  address?: string;
+  phone?: string;
+  organizationId?: string;
+  parentId?: string;
+}
+
 export default function OrganizationManagement() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('organization');
   const [organizations, setOrganizations] = useState<Organization[]>(mockOrganizations);
@@ -40,10 +52,11 @@ export default function OrganizationManagement() {
   const [showModal, setShowModal] = useState(false);
   const [formType, setFormType] = useState<FormType>('add');
   const [editingItem, setEditingItem] = useState<Organization | Department | null>(null);
-  const [formData, setFormData] = useState<FormData>({ name: '', code: '', address: '', phone: '', organizationId: '' });
+  const [formData, setFormData] = useState<FormData>({ name: '', code: '', address: '', phone: '', organizationId: '', parentId: '' });
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorFields, setErrorFields] = useState<string[]>([]);
-  const [fieldErrors, setFieldErrors] = useState({ name: false, code: false, organizationId: false });
+  const [fieldErrors, setFieldErrors] = useState({ name: false, code: false, organizationId: false, parentId: false });
+  const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set());
 
   const filteredOrganizations = organizations.filter((org) =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,9 +74,48 @@ export default function OrganizationManagement() {
 
   const activeOrgs = organizations.filter((o) => o.status === 'active');
 
+  const departmentTree = useMemo(() => {
+    const tree: Department[] = [];
+    const deptMap = new Map<string, Department>();
+    
+    filteredDepartments.forEach(dept => {
+      deptMap.set(dept.id, { ...dept, children: [] as Department[] });
+    });
+    
+    deptMap.forEach((dept) => {
+      if (dept.parentId && deptMap.has(dept.parentId)) {
+        const parent = deptMap.get(dept.parentId)!;
+        if (!parent.children) parent.children = [];
+        parent.children.push(dept);
+      } else {
+        tree.push(dept);
+      }
+    });
+    
+    return tree;
+  }, [filteredDepartments]);
+
+  const toggleExpand = (deptId: string) => {
+    setExpandedDepts(prev => {
+      const next = new Set(prev);
+      if (next.has(deptId)) {
+        next.delete(deptId);
+      } else {
+        next.add(deptId);
+      }
+      return next;
+    });
+  };
+
+  const isExpanded = (deptId: string) => expandedDepts.has(deptId);
+
+  const hasChildren = (dept: Department) => {
+    return (dept as Department & { children?: Department[] }).children?.length > 0;
+  };
+
   const validateForm = (): boolean => {
     const errors: string[] = [];
-    const newFieldErrors = { name: false, code: false, phone: false, organizationId: false };
+    const newFieldErrors = { name: false, code: false, phone: false, organizationId: false, parentId: false };
 
     if (!formData.name.trim()) {
       errors.push('名称不能为空');
@@ -115,6 +167,14 @@ export default function OrganizationManagement() {
       newFieldErrors.organizationId = true;
     }
 
+    if (activeTab === 'department' && formData.parentId) {
+      const parentDept = departments.find(d => d.id === formData.parentId);
+      if (!parentDept || parentDept.organizationId !== formData.organizationId) {
+        errors.push('上级部门必须属于同一单位');
+        newFieldErrors.parentId = true;
+      }
+    }
+
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
@@ -147,6 +207,7 @@ export default function OrganizationManagement() {
         name: formData.name,
         code: formData.code,
         organizationId: formData.organizationId!,
+        parentId: formData.parentId || undefined,
         status: 'active',
         createdAt: now,
         updatedAt: now,
@@ -200,25 +261,25 @@ export default function OrganizationManagement() {
       setFormData({ name: org.name, code: org.code, address: org.address || '', phone: org.phone || '' });
     } else {
       const dept = item as Department;
-      setFormData({ name: dept.name, code: dept.code, organizationId: dept.organizationId });
+      setFormData({ name: dept.name, code: dept.code, organizationId: dept.organizationId, parentId: dept.parentId });
     }
-    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false, parentId: false });
     setShowModal(true);
   };
 
   const openAddModal = () => {
     setEditingItem(null);
     setFormType('add');
-    setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id });
-    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
+    setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id, parentId: '' });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false, parentId: false });
     setShowModal(true);
   };
 
   const resetForm = () => {
     setShowModal(false);
     setEditingItem(null);
-    setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id });
-    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
+    setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id, parentId: '' });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false, parentId: false });
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -300,70 +361,160 @@ export default function OrganizationManagement() {
               </TableRow>
             </TableHead>
             <TableBody striped hoverable>
-              {(activeTab === 'organization' ? filteredOrganizations : filteredDepartments).map((item) => {
-                const orgItem = item as Organization;
-                const deptItem = item as Department;
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium text-gray-900">
-                      {item.name}
-                    </TableCell>
-                    <TableCell>{item.code}</TableCell>
-                    {activeTab === 'organization' && <TableCell>{orgItem.address || '-'}</TableCell>}
-                    {activeTab === 'department' && <TableCell>{getOrgName(deptItem.organizationId)}</TableCell>}
-                    <TableCell>
-                      <Badge variant={item.status === 'active' ? 'success' : 'secondary'}>
-                        {item.status === 'active' ? '正常' : '已归档'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{item.createdAt}</TableCell>
-                    <TableCell align="center">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => openEditModal(item)}
-                          className="p-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        {item.status === 'active' && (
+              {activeTab === 'organization' ? (
+                filteredOrganizations.map((item) => {
+                  const orgItem = item as Organization;
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-primary-600" />
+                          {item.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.code}</TableCell>
+                      <TableCell>{orgItem.address || '-'}</TableCell>
+                      <TableCell>
+                        <Badge variant={item.status === 'active' ? 'success' : 'secondary'}>
+                          {item.status === 'active' ? '正常' : '已归档'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{item.createdAt}</TableCell>
+                      <TableCell align="center">
+                        <div className="flex items-center justify-center gap-2">
                           <Button
-                            variant="danger"
+                            variant="secondary"
                             size="sm"
-                            onClick={() => handleArchive(item.id)}
+                            onClick={() => openEditModal(item)}
                             className="p-2"
                           >
-                            <Archive className="w-4 h-4" />
+                            <Edit className="w-4 h-4" />
                           </Button>
-                        )}
-                        {item.status === 'archived' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm('确定要恢复此项吗？')) {
-                                if (activeTab === 'organization') {
+                          {item.status === 'active' && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleArchive(item.id)}
+                              className="p-2"
+                            >
+                              <Archive className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {item.status === 'archived' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm('确定要恢复此项吗？')) {
                                   setOrganizations(organizations.map((org) =>
                                     org.id === item.id ? { ...org, status: 'active' } : org
                                   ));
-                                } else {
-                                  setDepartments(departments.map((dept) =>
-                                    dept.id === item.id ? { ...dept, status: 'active' } : dept
-                                  ));
                                 }
-                              }
-                            }}
-                            className="p-2"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                              }}
+                              className="p-2"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                departmentTree.map((dept) => {
+                  const renderDeptRow = (department: Department, level: number) => {
+                    const children = (department as Department & { children?: Department[] }).children || [];
+                    const hasKids = children.length > 0;
+                    const expanded = isExpanded(department.id);
+                    
+                    return (
+                      <>
+                        <TableRow key={department.id}>
+                          <TableCell className="font-medium text-gray-900">
+                            <div className="flex items-center gap-2">
+                              {hasKids && (
+                                <button
+                                  onClick={() => toggleExpand(department.id)}
+                                  className="p-0.5 hover:bg-gray-100 rounded transition-colors"
+                                >
+                                  {expanded ? (
+                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </button>
+                              )}
+                              {!hasKids && <span className="w-5" />}
+                              {hasKids ? (
+                                expanded ? (
+                                  <FolderOpen className="w-4 h-4 text-yellow-600" />
+                                ) : (
+                                  <Folder className="w-4 h-4 text-yellow-600" />
+                                )
+                              ) : (
+                                <File className="w-4 h-4 text-gray-400" />
+                              )}
+                              <span style={{ paddingLeft: `${level * 16}px` }}>
+                                {department.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{department.code}</TableCell>
+                          <TableCell>{getOrgName(department.organizationId)}</TableCell>
+                          <TableCell>
+                            <Badge variant={department.status === 'active' ? 'success' : 'secondary'}>
+                              {department.status === 'active' ? '正常' : '已归档'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{department.createdAt}</TableCell>
+                          <TableCell align="center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => openEditModal(department)}
+                                className="p-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              {department.status === 'active' && (
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => handleArchive(department.id)}
+                                  className="p-2"
+                                >
+                                  <Archive className="w-4 h-4" />
+                                </Button>
+                              )}
+                              {department.status === 'archived' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (confirm('确定要恢复此项吗？')) {
+                                      setDepartments(departments.map((d) =>
+                                        d.id === department.id ? { ...d, status: 'active' } : d
+                                      ));
+                                    }
+                                  }}
+                                  className="p-2"
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {hasKids && expanded && children.map((child) => renderDeptRow(child, level + 1))}
+                      </>
+                    );
+                  };
+                  
+                  return renderDeptRow(dept, 0);
+                })
+              )}
             </TableBody>
           </Table>
           {(activeTab === 'organization' ? filteredOrganizations : filteredDepartments).length === 0 && (
@@ -430,22 +581,39 @@ export default function OrganizationManagement() {
             </>
           )}
           {activeTab === 'department' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                所属单位
-                <span className="text-red-500">*</span>
-              </label>
-              <Select
-                value={formData.organizationId || ''}
-                onChange={(e) => handleInputChange('organizationId', e.target.value)}
-                status={fieldErrors.organizationId ? 'error' : 'default'}
-              >
-                <option value="">请选择所属单位</option>
-                {activeOrgs.map((org) => (
-                  <option key={org.id} value={org.id}>{org.name}</option>
-                ))}
-              </Select>
-            </div>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  所属单位
+                  <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={formData.organizationId || ''}
+                  onChange={(e) => handleInputChange('organizationId', e.target.value)}
+                  status={fieldErrors.organizationId ? 'error' : 'default'}
+                >
+                  <option value="">请选择所属单位</option>
+                  {activeOrgs.map((org) => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">上级部门</label>
+                <Select
+                  value={formData.parentId || ''}
+                  onChange={(e) => handleInputChange('parentId', e.target.value)}
+                  status={fieldErrors.parentId ? 'error' : 'default'}
+                >
+                  <option value="">无（作为一级部门）</option>
+                  {formData.organizationId && departments
+                    .filter(d => d.organizationId === formData.organizationId && d.status === 'active' && d.id !== editingItem?.id)
+                    .map((dept) => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                </Select>
+              </div>
+            </>
           )}
         </div>
 

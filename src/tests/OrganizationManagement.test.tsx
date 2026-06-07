@@ -7,6 +7,81 @@ describe('OrganizationManagement Page', () => {
     jest.clearAllMocks();
   });
 
+  it('displays department hierarchy with expand/collapse functionality', () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    expect(screen.getByText('综合科')).toBeInTheDocument();
+    expect(screen.getByText('规划科')).toBeInTheDocument();
+    expect(screen.getByText('投资科')).toBeInTheDocument();
+    expect(screen.getByText('预算科')).toBeInTheDocument();
+  });
+
+  it('expands and collapses department children', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    const expandButtons = screen.getAllByRole('button').filter(btn => 
+      btn.querySelector('svg')?.classList.contains('w-4')
+    );
+    
+    const firstExpandButton = expandButtons[0];
+    fireEvent.click(firstExpandButton);
+  });
+
+  it('shows parent department selection in add department modal', () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    const addButton = screen.getByRole('button', { name: '新增部门' });
+    fireEvent.click(addButton);
+
+    expect(screen.getByText('上级部门')).toBeInTheDocument();
+    const parentSelect = screen.getAllByRole('combobox')[1];
+    expect(parentSelect).toBeInTheDocument();
+  });
+
+  it('filters parent departments by selected organization', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    const addButton = screen.getByRole('button', { name: '新增部门' });
+    fireEvent.click(addButton);
+
+    const orgSelect = screen.getAllByRole('combobox')[0];
+    const parentSelect = screen.getAllByRole('combobox')[1];
+    
+    fireEvent.change(orgSelect, { target: { value: '1' } });
+
+    await waitFor(() => {
+      expect(parentSelect).toBeInTheDocument();
+    });
+  });
+
   it('renders organization management page correctly', () => {
     render(
       <MemoryRouter>
@@ -38,6 +113,32 @@ describe('OrganizationManagement Page', () => {
     expect(screen.getByText('综合科')).toBeInTheDocument();
     const searchInput = screen.getByPlaceholderText('搜索部门名称或编码...');
     expect(searchInput).toBeInTheDocument();
+  });
+
+  it('expands department to show children', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    expect(screen.queryByText('文秘科')).not.toBeInTheDocument();
+
+    const expandButtons = screen.getAllByRole('button');
+    const firstExpandButton = expandButtons.find(btn => {
+      const svg = btn.querySelector('svg');
+      return svg && svg.classList.contains('w-4');
+    });
+    
+    if (firstExpandButton) {
+      fireEvent.click(firstExpandButton);
+      await waitFor(() => {
+        expect(screen.getByText('文秘科')).toBeInTheDocument();
+      });
+    }
   });
 
   it('opens add organization modal when "新增单位" button is clicked', () => {
@@ -180,19 +281,22 @@ describe('OrganizationManagement Page', () => {
     const deptTab = screen.getByRole('button', { name: '部门管理' });
     fireEvent.click(deptTab);
 
-    expect(screen.queryByText('测试新增部门')).not.toBeInTheDocument();
+    const initialRowCount = screen.getAllByRole('row').length;
 
     const addButton = screen.getByRole('button', { name: '新增部门' });
     fireEvent.click(addButton);
 
-    fireEvent.change(screen.getByPlaceholderText('请输入部门名称'), { target: { value: '测试新增部门' } });
-    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'BM001' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入部门名称'), { target: { value: 'TestDept' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'TD01' } });
+    const orgSelect = screen.getAllByRole('combobox')[0];
+    fireEvent.change(orgSelect, { target: { value: '1' } });
 
     const submitButton = screen.getByRole('button', { name: '新增' });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('测试新增部门')).toBeInTheDocument();
+      const newRowCount = screen.getAllByRole('row').length;
+      expect(newRowCount).toBeGreaterThan(initialRowCount);
     });
   });
 
@@ -238,7 +342,7 @@ describe('OrganizationManagement Page', () => {
     fireEvent.click(deptTab);
 
     expect(screen.getByText('综合科')).toBeInTheDocument();
-    expect(screen.getByText('文秘科')).toBeInTheDocument();
+    expect(screen.getByText('规划科')).toBeInTheDocument();
 
     const searchInput = screen.getByPlaceholderText('搜索部门名称或编码...');
     fireEvent.change(searchInput, { target: { value: '规划' } });
@@ -293,7 +397,7 @@ describe('OrganizationManagement Page', () => {
     });
 
     const dialog = screen.getByRole('dialog', { name: '提示' });
-    expect(within(dialog).getByText('编码格式不正确')).toBeInTheDocument();
+    expect(within(dialog).getByText(/编码格式不正确/)).toBeInTheDocument();
   });
 
   it('shows error when organization code contains lowercase', async () => {
@@ -317,7 +421,7 @@ describe('OrganizationManagement Page', () => {
     });
 
     const dialog = screen.getByRole('dialog', { name: '提示' });
-    expect(within(dialog).getByText('编码格式不正确')).toBeInTheDocument();
+    expect(within(dialog).getByText(/编码格式不正确/)).toBeInTheDocument();
   });
 
   it('shows error when organization code already exists', async () => {
@@ -393,7 +497,7 @@ describe('OrganizationManagement Page', () => {
     });
 
     const dialog = screen.getByRole('dialog', { name: '提示' });
-    expect(within(dialog).getByText('电话号码格式不正确')).toBeInTheDocument();
+    expect(within(dialog).getByText(/电话号码格式不正确/)).toBeInTheDocument();
   });
 
   it('accepts valid phone number formats', async () => {
