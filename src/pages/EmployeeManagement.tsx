@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, X, User } from 'lucide-react';
+import { Search, Plus, X, User, Filter } from 'lucide-react';
 import { Employee, Department, Organization, EmployeeFormData } from '../types';
-import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal } from '../components';
+import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select } from '../components';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeList from '../components/EmployeeList';
 
@@ -47,24 +47,28 @@ export default function EmployeeManagement() {
   const [departments] = useState<Department[]>(mockDepartments);
   const [organizations] = useState<Organization[]>(mockOrganizations);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
 
   const filteredEmployees = useMemo(() => {
-    if (!searchTerm.trim()) return employees;
-    
-    const lowerTerm = searchTerm.toLowerCase();
-    return employees.filter(
-      (emp) =>
-        emp.name.toLowerCase().includes(lowerTerm) ||
-        emp.employeeId.toLowerCase().includes(lowerTerm) ||
+    return employees.filter((emp) => {
+      const matchesSearch = !searchTerm.trim() ||
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.phone.includes(searchTerm) ||
-        emp.email.toLowerCase().includes(lowerTerm) ||
-        emp.position.toLowerCase().includes(lowerTerm)
-    );
-  }, [employees, searchTerm]);
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.position.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = !statusFilter || emp.status === statusFilter;
+      const matchesDepartment = !departmentFilter || emp.departmentId === departmentFilter;
+
+      return matchesSearch && matchesStatus && matchesDepartment;
+    });
+  }, [employees, searchTerm, statusFilter, departmentFilter]);
 
   const activeDepartments = departments.filter((d) => d.status === 'active');
 
@@ -142,15 +146,64 @@ export default function EmployeeManagement() {
         </Button>
       </div>
 
-      <div className="relative mb-6 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <Input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="搜索姓名、员工编号、电话、邮箱或职位..."
-          className="pl-10"
-        />
+      <div className="mb-6 space-y-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="搜索姓名、员工编号、电话、邮箱或职位..."
+            className="pl-10"
+          />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-500">筛选条件：</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 min-w-[140px]">
+              <span className="text-sm text-gray-500">状态：</span>
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="min-w-[100px]"
+              >
+                <option value="">全部</option>
+                <option value="active">在职</option>
+                <option value="on-leave">休假</option>
+                <option value="resigned">离职</option>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 min-w-[180px]">
+              <span className="text-sm text-gray-500">部门：</span>
+              <Select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="min-w-[140px]"
+              >
+                <option value="">全部</option>
+                {activeDepartments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {getDepartmentName(dept.id)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStatusFilter('');
+                setDepartmentFilter('');
+                setSearchTerm('');
+              }}
+            >
+              重置筛选
+            </Button>
+          </div>
+        </div>
       </div>
 
       <EmployeeList

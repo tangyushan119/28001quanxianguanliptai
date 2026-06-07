@@ -160,4 +160,82 @@ describe('EmployeeManagement Page', () => {
 
     window.confirm = originalConfirm;
   });
+
+  it('filters employees by status', async () => {
+    render(<EmployeeManagement />, { wrapper });
+
+    expect(screen.getByText('张三')).toBeInTheDocument();
+    expect(screen.getByText('王五')).toBeInTheDocument();
+
+    const statusSelect = screen.getByRole('combobox', { name: /状态/ });
+    fireEvent.change(statusSelect, { target: { value: 'on-leave' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('王五')).toBeInTheDocument();
+      expect(screen.queryByText('张三')).not.toBeInTheDocument();
+    });
+  });
+
+  it('filters employees by department', async () => {
+    render(<EmployeeManagement />, { wrapper });
+
+    expect(screen.getByText('张三')).toBeInTheDocument();
+    expect(screen.getByText('李四')).toBeInTheDocument();
+
+    const departmentSelect = screen.getByRole('combobox', { name: /部门/ });
+    fireEvent.change(departmentSelect, { target: { value: '1' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('张三')).toBeInTheDocument();
+      expect(screen.queryByText('李四')).not.toBeInTheDocument();
+    });
+  });
+
+  it('combines multiple filters', async () => {
+    render(<EmployeeManagement />, { wrapper });
+
+    expect(screen.getByText('张三')).toBeInTheDocument();
+    expect(screen.getByText('李四')).toBeInTheDocument();
+    expect(screen.getByText('王五')).toBeInTheDocument();
+    expect(screen.getByText('赵六')).toBeInTheDocument();
+
+    const statusSelect = screen.getByRole('combobox', { name: /状态/ });
+    const departmentSelect = screen.getByRole('combobox', { name: /部门/ });
+
+    fireEvent.change(statusSelect, { target: { value: 'active' } });
+    fireEvent.change(departmentSelect, { target: { value: '4' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('赵六')).toBeInTheDocument();
+      expect(screen.queryByText('张三')).not.toBeInTheDocument();
+      expect(screen.queryByText('李四')).not.toBeInTheDocument();
+      expect(screen.queryByText('王五')).not.toBeInTheDocument();
+    });
+  });
+
+  it('resets all filters when reset button is clicked', async () => {
+    render(<EmployeeManagement />, { wrapper });
+
+    const statusSelect = screen.getByRole('combobox', { name: /状态/ });
+    const departmentSelect = screen.getByRole('combobox', { name: /部门/ });
+    const searchInput = screen.getByPlaceholderText('搜索姓名、员工编号、电话、邮箱或职位...');
+
+    fireEvent.change(statusSelect, { target: { value: 'active' } });
+    fireEvent.change(departmentSelect, { target: { value: '1' } });
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    await waitFor(() => {
+      expect(screen.queryByText('张三')).not.toBeInTheDocument();
+    });
+
+    const resetButton = screen.getByRole('button', { name: '重置筛选' });
+    fireEvent.click(resetButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('张三')).toBeInTheDocument();
+      expect(screen.getByText('李四')).toBeInTheDocument();
+      expect(screen.getByText('王五')).toBeInTheDocument();
+      expect(screen.getByText('赵六')).toBeInTheDocument();
+    });
+  });
 });
