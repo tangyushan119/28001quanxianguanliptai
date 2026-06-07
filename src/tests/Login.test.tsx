@@ -26,7 +26,7 @@ describe('Login Page', () => {
     expect(screen.getByRole('button', { name: /登录/i })).toBeInTheDocument();
   });
 
-  it('shows error when username is empty', async () => {
+  it('shows modal with required fields when form is submitted empty', async () => {
     render(
       <MemoryRouter>
         <Login />
@@ -36,11 +36,33 @@ describe('Login Page', () => {
     fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
-      expect(screen.getByText(/请输入用户名/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
+
+    expect(screen.getByText('请填写以下必填项')).toBeInTheDocument();
+    expect(screen.getByText('用户名')).toBeInTheDocument();
+    expect(screen.getByText('密码')).toBeInTheDocument();
   });
 
-  it('shows error when password is empty', async () => {
+  it('shows modal when only username is empty', async () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/密码/i), { target: { value: 'password123' } });
+    fireEvent.submit(screen.getByRole('form'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('用户名')).toBeInTheDocument();
+    expect(screen.queryByText('密码')).not.toBeInTheDocument();
+  });
+
+  it('shows modal when only password is empty', async () => {
     render(
       <MemoryRouter>
         <Login />
@@ -51,11 +73,56 @@ describe('Login Page', () => {
     fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
-      expect(screen.getByText(/请输入密码/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('密码')).toBeInTheDocument();
+    expect(screen.queryByText('用户名')).not.toBeInTheDocument();
+  });
+
+  it('closes modal when close button is clicked', async () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.submit(screen.getByRole('form'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    const closeButton = screen.getByRole('button', { name: '' });
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 
-  it('shows error when credentials are invalid', async () => {
+  it('closes modal when "知道了" button is clicked', async () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.submit(screen.getByRole('form'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    const confirmButton = screen.getByRole('button', { name: '知道了' });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows modal with error message when credentials are invalid', async () => {
     render(
       <MemoryRouter>
         <Login />
@@ -67,8 +134,10 @@ describe('Login Page', () => {
     fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
-      expect(screen.getByText(/用户名或密码错误/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
+
+    expect(screen.getByText('用户名或密码错误，请重新输入')).toBeInTheDocument();
   });
 
   it('navigates to dashboard when credentials are valid', async () => {
@@ -95,12 +164,38 @@ describe('Login Page', () => {
     );
 
     const passwordInput = screen.getByLabelText(/密码/i);
-    const toggleButton = screen.getByRole('button', { name: '' });
+    const toggleButton = screen.getAllByRole('button', { name: '' })[0];
 
     expect(passwordInput).toHaveAttribute('type', 'password');
     fireEvent.click(toggleButton);
     expect(passwordInput).toHaveAttribute('type', 'text');
     fireEvent.click(toggleButton);
     expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
+  it('removes error state when user starts typing', async () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.submit(screen.getByRole('form'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    const closeButton = screen.getByRole('button', { name: '' });
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    const usernameInput = screen.getByLabelText(/用户名/i);
+    fireEvent.change(usernameInput, { target: { value: 'test' } });
+
+    expect(usernameInput).not.toHaveClass('border-red-500');
   });
 });
