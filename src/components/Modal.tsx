@@ -1,56 +1,132 @@
-import { X, AlertCircle } from 'lucide-react';
+import { ReactNode, useEffect } from 'react';
+import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+
+export type ModalType = 'default' | 'success' | 'error' | 'warning' | 'info';
+export type ModalSize = 'sm' | 'md' | 'lg';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  message: string;
-  fields?: string[];
+  children: ReactNode;
+  type?: ModalType;
+  size?: ModalSize;
+  showCloseButton?: boolean;
+  closeOnOverlayClick?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, message, fields }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  type = 'default',
+  size = 'md',
+  showCloseButton = true,
+  closeOnOverlayClick = true,
+}: ModalProps) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
+  const typeStyles = {
+    default: {
+      header: 'bg-white',
+      icon: null,
+      iconBg: '',
+      iconColor: '',
+      border: 'border-gray-100',
+    },
+    success: {
+      header: 'bg-success-50',
+      icon: CheckCircle,
+      iconBg: 'bg-success-100',
+      iconColor: 'text-success-500',
+      border: 'border-success-100',
+    },
+    error: {
+      header: 'bg-error-50',
+      icon: AlertCircle,
+      iconBg: 'bg-error-100',
+      iconColor: 'text-error-500',
+      border: 'border-error-100',
+    },
+    warning: {
+      header: 'bg-warning-50',
+      icon: AlertTriangle,
+      iconBg: 'bg-warning-100',
+      iconColor: 'text-warning-500',
+      border: 'border-warning-100',
+    },
+    info: {
+      header: 'bg-info-50',
+      icon: Info,
+      iconBg: 'bg-info-100',
+      iconColor: 'text-info-500',
+      border: 'border-info-100',
+    },
+  };
+
+  const sizeStyles = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+  };
+
+  const currentStyles = typeStyles[type];
+  const Icon = currentStyles.icon;
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 overflow-hidden" role="dialog" aria-label={title}>
-        <div className="bg-red-50 px-6 py-4 border-b border-red-100">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div
+        className="absolute inset-0"
+        onClick={closeOnOverlayClick ? onClose : undefined}
+      />
+      <div
+        className={`relative bg-white rounded-xl shadow-xl w-full ${sizeStyles[size]} overflow-hidden border ${currentStyles.border}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <div className={`px-6 py-4 border-b ${currentStyles.border} ${currentStyles.header}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-              </div>
+              {Icon && (
+                <div className={`w-10 h-10 ${currentStyles.iconBg} rounded-full flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${currentStyles.iconColor}`} />
+                </div>
+              )}
               <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+            {showCloseButton && (
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="关闭"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            )}
           </div>
         </div>
         <div className="p-6">
-          <p className="text-gray-600 mb-4">{message}</p>
-          {fields && fields.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">未填写的项目:</p>
-              <ul className="space-y-2">
-                {fields.map((field, index) => (
-                  <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                    {field}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <button
-            onClick={onClose}
-            className="w-full mt-6 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors"
-          >
-            知道了
-          </button>
+          {children}
         </div>
       </div>
     </div>

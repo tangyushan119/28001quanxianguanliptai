@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import Modal from '@/components/Modal';
+import { Button, Input, Modal } from '@/components';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -98,23 +98,15 @@ export default function Login() {
                 用户名
                 <span className="text-red-400">*</span>
               </label>
-              <div className="relative">
-                <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${usernameError ? 'text-red-400' : 'text-white/40'}`} />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  placeholder="请输入用户名"
-                  className={`w-full pl-12 pr-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 transition-all ${
-                    usernameError 
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
-                      : 'border-white/20 focus:border-accent-500 focus:ring-accent-500/20'
-                  }`}
-                />
-                {usernameError && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400 text-sm">必填</span>
-                )}
-              </div>
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                placeholder="请输入用户名"
+                leftIcon={<User className={`w-5 h-5 ${usernameError ? 'text-red-400' : 'text-white/40'}`} />}
+                status={usernameError ? 'error' : 'default'}
+                className="bg-white/10 border-white/20 text-white placeholder-white/40 focus:border-accent-500 focus:ring-accent-500/20"
+              />
             </div>
 
             <div>
@@ -123,7 +115,7 @@ export default function Login() {
                 <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${passwordError ? 'text-red-400' : 'text-white/40'}`} />
+                <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${passwordError ? 'text-red-400' : 'text-white/40'} pointer-events-none`} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -138,36 +130,22 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
-                {passwordError && (
-                  <span className="absolute right-20 top-1/2 -translate-y-1/2 text-red-400 text-sm">必填</span>
-                )}
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              size="lg"
+              loading={loading}
+              className="w-full"
             >
-              {loading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  登录中...
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  登 录
-                </>
-              )}
-            </button>
+              <LogIn className="w-5 h-5" />
+              登 录
+            </Button>
           </form>
 
           <div className="mt-6 flex justify-center">
@@ -181,13 +159,29 @@ export default function Login() {
         </div>
       </div>
 
-      <Modal
-        isOpen={modalIsOpen}
-        onClose={handleCloseModal}
-        title="提示"
-        message={modalFields.includes('用户名或密码错误') ? '用户名或密码错误，请重新输入' : '请填写以下必填项'}
-        fields={modalFields.includes('用户名或密码错误') ? undefined : modalFields}
-      />
+      <Modal isOpen={modalIsOpen} onClose={handleCloseModal} title="提示" type={modalFields.includes('用户名或密码错误') ? 'error' : 'warning'}>
+        <div>
+          <p className="text-gray-600 mb-4">
+            {modalFields.includes('用户名或密码错误') ? '用户名或密码错误，请重新输入' : '请填写以下必填项'}
+          </p>
+          {!modalFields.includes('用户名或密码错误') && modalFields.length > 0 && (
+            <div className="bg-error-50 rounded-lg p-4">
+              <p className="text-sm font-medium text-error-700 mb-2">未填写的项目:</p>
+              <ul className="space-y-2">
+                {modalFields.map((field, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm text-error-600">
+                    <span className="w-1.5 h-1.5 bg-error-500 rounded-full" />
+                    {field}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <Button onClick={handleCloseModal} className="w-full mt-4">
+            知道了
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
