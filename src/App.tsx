@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DataManagement from './pages/DataManagement';
+import OrganizationManagement from './pages/OrganizationManagement';
 import Layout from './components/Layout';
 import { useAuth } from './contexts/AuthContext';
 
@@ -66,6 +67,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DataManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization-management"
+          element={
+            <ProtectedRoute>
+              <OrganizationManagement />
             </ProtectedRoute>
           }
         />

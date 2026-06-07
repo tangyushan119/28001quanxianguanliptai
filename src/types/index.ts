@@ -22,3 +22,25 @@ export interface DataItem {
   category: string;
   createdAt: string;
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  code: string;
+  address?: string;
+  phone?: string;
+  status: 'active' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  code: string;
+  organizationId: string;
+  parentId?: string;
+  status: 'active' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}

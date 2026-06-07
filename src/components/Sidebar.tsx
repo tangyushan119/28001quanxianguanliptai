@@ -1,10 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Database, LogOut, Globe } from 'lucide-react';
+import { LayoutDashboard, Database, LogOut, Globe, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: '数据仪表盘' },
   { path: '/data-management', icon: Database, label: '数据管理' },
+  { path: '/organization-management', icon: Building2, label: '单位部门管理' },
 ];
 
 export default function Sidebar() {
