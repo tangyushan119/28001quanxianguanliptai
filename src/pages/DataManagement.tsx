@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Filter, X, Check } from 'lucide-react';
 import { DataItem } from '@/types';
+import Modal from '@/components/Modal';
 
 const mockData: DataItem[] = [
   { id: '1', name: '城镇人口', value: 856234, category: '人口数据', createdAt: '2024-01-15' },
@@ -20,6 +21,9 @@ export default function DataManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<DataItem | null>(null);
   const [newItem, setNewItem] = useState({ name: '', value: '', category: '' });
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorFields, setErrorFields] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState({ name: false, value: false, category: false });
 
   const categories = [...new Set(data.map((item) => item.category))];
 
@@ -30,32 +34,64 @@ export default function DataManagement() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleAdd = () => {
-    if (newItem.name && newItem.value && newItem.category) {
-      const item: DataItem = {
-        id: Date.now().toString(),
-        name: newItem.name,
-        value: parseFloat(newItem.value),
-        category: newItem.category,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setData([...data, item]);
-      setNewItem({ name: '', value: '', category: '' });
-      setShowAddModal(false);
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    const newFieldErrors = { name: false, value: false, category: false };
+
+    if (!newItem.name.trim()) {
+      errors.push('数据名称');
+      newFieldErrors.name = true;
     }
+    if (!newItem.value.trim()) {
+      errors.push('数值');
+      newFieldErrors.value = true;
+    } else if (isNaN(parseFloat(newItem.value))) {
+      errors.push('数值格式不正确');
+      newFieldErrors.value = true;
+    }
+    if (!newItem.category) {
+      errors.push('分类');
+      newFieldErrors.category = true;
+    }
+
+    setFieldErrors(newFieldErrors);
+
+    if (errors.length > 0) {
+      setErrorFields(errors);
+      setShowErrorModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  const handleAdd = () => {
+    if (!validateForm()) return;
+
+    const item: DataItem = {
+      id: Date.now().toString(),
+      name: newItem.name,
+      value: parseFloat(newItem.value),
+      category: newItem.category,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData([...data, item]);
+    setNewItem({ name: '', value: '', category: '' });
+    setFieldErrors({ name: false, value: false, category: false });
+    setShowAddModal(false);
   };
 
   const handleUpdate = () => {
-    if (editingItem && newItem.name && newItem.value && newItem.category) {
-      setData(data.map((item) =>
-        item.id === editingItem.id
-          ? { ...item, name: newItem.name, value: parseFloat(newItem.value), category: newItem.category }
-          : item
-      ));
-      setEditingItem(null);
-      setNewItem({ name: '', value: '', category: '' });
-      setShowAddModal(false);
-    }
+    if (!validateForm()) return;
+
+    setData(data.map((item) =>
+      item.id === editingItem!.id
+        ? { ...item, name: newItem.name, value: parseFloat(newItem.value), category: newItem.category }
+        : item
+    ));
+    setEditingItem(null);
+    setNewItem({ name: '', value: '', category: '' });
+    setFieldErrors({ name: false, value: false, category: false });
+    setShowAddModal(false);
   };
 
   const handleDelete = (id: string) => {
@@ -67,7 +103,19 @@ export default function DataManagement() {
   const openEditModal = (item: DataItem) => {
     setEditingItem(item);
     setNewItem({ name: item.name, value: item.value.toString(), category: item.category });
+    setFieldErrors({ name: false, value: false, category: false });
     setShowAddModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowErrorModal(false);
+  };
+
+  const handleInputChange = (field: 'name' | 'value' | 'category', value: string) => {
+    setNewItem({ ...newItem, [field]: value });
+    if (fieldErrors[field]) {
+      setFieldErrors({ ...fieldErrors, [field]: false });
+    }
   };
 
   return (
@@ -78,7 +126,12 @@ export default function DataManagement() {
           <p className="text-gray-500 mt-1">管理全县各类数据信息</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setEditingItem(null);
+            setNewItem({ name: '', value: '', category: '' });
+            setFieldErrors({ name: false, value: false, category: false });
+            setShowAddModal(true);
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
@@ -183,6 +236,7 @@ export default function DataManagement() {
                   setShowAddModal(false);
                   setEditingItem(null);
                   setNewItem({ name: '', value: '', category: '' });
+                  setFieldErrors({ name: false, value: false, category: false });
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -192,31 +246,52 @@ export default function DataManagement() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">数据名称</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  数据名称
+                  <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="请输入数据名称"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    fieldErrors.name
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-gray-200 focus:ring-primary-500'
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">数值</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  数值
+                  <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="number"
                   value={newItem.value}
-                  onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
+                  onChange={(e) => handleInputChange('value', e.target.value)}
                   placeholder="请输入数值"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    fieldErrors.value
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-gray-200 focus:ring-primary-500'
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  分类
+                  <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={newItem.category}
-                  onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    fieldErrors.category
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-gray-200 focus:ring-primary-500'
+                  }`}
                 >
                   <option value="">请选择分类</option>
                   {categories.map((category) => (
@@ -233,6 +308,7 @@ export default function DataManagement() {
                   setShowAddModal(false);
                   setEditingItem(null);
                   setNewItem({ name: '', value: '', category: '' });
+                  setFieldErrors({ name: false, value: false, category: false });
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -249,6 +325,14 @@ export default function DataManagement() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={showErrorModal}
+        onClose={handleCloseModal}
+        title="提示"
+        message="请填写以下必填项"
+        fields={errorFields}
+      />
     </div>
   );
 }

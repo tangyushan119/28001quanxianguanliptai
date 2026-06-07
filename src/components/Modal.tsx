@@ -13,7 +13,7 @@ export default function Modal({ isOpen, onClose, title, message, fields }: Modal
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 overflow-hidden" role="dialog" aria-label={title}>
         <div className="bg-red-50 px-6 py-4 border-b border-red-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
