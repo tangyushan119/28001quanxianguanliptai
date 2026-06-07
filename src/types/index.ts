@@ -85,8 +85,11 @@ export interface Equipment {
   type: string;
   model: string;
   manufacturer: string;
+  brandSeries?: string;
+  assetNumber?: string;
   purchaseDate: string;
   price: number;
+  usefulLife?: number;
   location: string;
   departmentId: string;
   responsiblePerson: string;
@@ -102,6 +105,8 @@ export interface Supplies {
   name: string;
   code: string;
   category: string;
+  brandSeries?: string;
+  assetNumber?: string;
   unit: string;
   quantity: number;
   unitPrice: number;
@@ -111,6 +116,7 @@ export interface Supplies {
   supplier?: string;
   purchaseDate: string;
   expirationDate?: string;
+  shelfLife?: number;
   status: 'in-stock' | 'in-use' | 'low-stock' | 'depleted';
   description?: string;
   createdAt: string;
@@ -123,8 +129,11 @@ export interface EquipmentFormData {
   type: string;
   model: string;
   manufacturer: string;
+  brandSeries?: string;
+  assetNumber?: string;
   purchaseDate: string;
   price: string;
+  usefulLife?: string;
   location: string;
   departmentId: string;
   responsiblePerson: string;
@@ -137,6 +146,8 @@ export interface SuppliesFormData {
   name: string;
   code: string;
   category: string;
+  brandSeries?: string;
+  assetNumber?: string;
   unit: string;
   quantity: string;
   unitPrice: string;
@@ -146,6 +157,7 @@ export interface SuppliesFormData {
   supplier?: string;
   purchaseDate: string;
   expirationDate?: string;
+  shelfLife?: string;
   status: 'in-stock' | 'in-use' | 'low-stock' | 'depleted';
   description?: string;
 }

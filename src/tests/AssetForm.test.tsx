@@ -23,7 +23,10 @@ describe('AssetForm - Equipment Mode', () => {
     expect(screen.getByText('装备类型')).toBeInTheDocument();
     expect(screen.getByText('型号')).toBeInTheDocument();
     expect(screen.getByText('生产厂商')).toBeInTheDocument();
+    expect(screen.getByText('品牌系列')).toBeInTheDocument();
+    expect(screen.getByText('资产编号')).toBeInTheDocument();
     expect(screen.getByText('采购价格')).toBeInTheDocument();
+    expect(screen.getByText('使用年限（年）')).toBeInTheDocument();
     expect(screen.getByText('存放位置')).toBeInTheDocument();
     expect(screen.getByText('所属部门')).toBeInTheDocument();
     expect(screen.getByText('负责人')).toBeInTheDocument();
@@ -123,12 +126,15 @@ describe('AssetForm - Supplies Mode', () => {
     expect(screen.getByText('名称')).toBeInTheDocument();
     expect(screen.getByText('编号')).toBeInTheDocument();
     expect(screen.getByText('物资类别')).toBeInTheDocument();
+    expect(screen.getByText('品牌系列')).toBeInTheDocument();
+    expect(screen.getByText('资产编号')).toBeInTheDocument();
     expect(screen.getByText('单位')).toBeInTheDocument();
     expect(screen.getByText('数量')).toBeInTheDocument();
     expect(screen.getByText('单价')).toBeInTheDocument();
     expect(screen.getByText('存放位置')).toBeInTheDocument();
     expect(screen.getByText('所属部门')).toBeInTheDocument();
     expect(screen.getByText('采购日期')).toBeInTheDocument();
+    expect(screen.getByText('保质期（月）')).toBeInTheDocument();
     expect(screen.getByText('状态')).toBeInTheDocument();
   });
 

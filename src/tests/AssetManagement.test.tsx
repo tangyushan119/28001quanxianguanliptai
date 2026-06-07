@@ -110,6 +110,25 @@ describe('AssetManagement Page', () => {
     });
   });
 
+  it('filters equipment by type (category)', async () => {
+    render(<AssetManagement />);
+
+    const categorySelect = screen.getAllByRole('combobox')[1];
+    fireEvent.change(categorySelect, { target: { value: 'computer' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('台式电脑')).toBeInTheDocument();
+      expect(screen.getByText('笔记本电脑')).toBeInTheDocument();
+      expect(screen.queryByText('打印机')).not.toBeInTheDocument();
+    });
+
+    fireEvent.change(categorySelect, { target: { value: '' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('打印机')).toBeInTheDocument();
+    });
+  });
+
   it('filters supplies by status', async () => {
     render(<AssetManagement />);
 
@@ -123,6 +142,32 @@ describe('AssetManagement Page', () => {
     await waitFor(() => {
       expect(screen.getByText('消毒液')).toBeInTheDocument();
       expect(screen.queryByText('A4打印纸')).not.toBeInTheDocument();
+    });
+  });
+
+  it('filters supplies by category', async () => {
+    render(<AssetManagement />);
+
+    fireEvent.click(screen.getByText('办公物资管理'));
+
+    await waitFor(() => {
+      const categorySelect = screen.getAllByRole('combobox')[1];
+      fireEvent.change(categorySelect, { target: { value: 'stationery' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('A4打印纸')).toBeInTheDocument();
+      expect(screen.getByText('签字笔')).toBeInTheDocument();
+      expect(screen.queryByText('办公椅')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      const categorySelect = screen.getAllByRole('combobox')[1];
+      fireEvent.change(categorySelect, { target: { value: '' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('办公椅')).toBeInTheDocument();
     });
   });
 

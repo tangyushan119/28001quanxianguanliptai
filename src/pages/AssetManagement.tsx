@@ -45,6 +45,7 @@ export default function AssetManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Equipment | Supplies | null>(null);
@@ -78,10 +79,11 @@ export default function AssetManagement() {
 
       const matchesStatus = !statusFilter || eq.status === statusFilter;
       const matchesDepartment = !departmentFilter || eq.departmentId === departmentFilter;
+      const matchesCategory = !categoryFilter || eq.type === categoryFilter;
 
-      return matchesSearch && matchesStatus && matchesDepartment;
+      return matchesSearch && matchesStatus && matchesDepartment && matchesCategory;
     });
-  }, [equipments, searchTerm, statusFilter, departmentFilter]);
+  }, [equipments, searchTerm, statusFilter, departmentFilter, categoryFilter]);
 
   const filteredSupplies = useMemo(() => {
     return supplies.filter((sp) => {
@@ -91,10 +93,11 @@ export default function AssetManagement() {
 
       const matchesStatus = !statusFilter || sp.status === statusFilter;
       const matchesDepartment = !departmentFilter || sp.departmentId === departmentFilter;
+      const matchesCategory = !categoryFilter || sp.category === categoryFilter;
 
-      return matchesSearch && matchesStatus && matchesDepartment;
+      return matchesSearch && matchesStatus && matchesDepartment && matchesCategory;
     });
-  }, [supplies, searchTerm, statusFilter, departmentFilter]);
+  }, [supplies, searchTerm, statusFilter, departmentFilter, categoryFilter]);
 
   const handleEquipmentSubmit = (data: EquipmentFormData) => {
     const now = new Date().toISOString().split('T')[0];
@@ -103,12 +106,14 @@ export default function AssetManagement() {
       updateEquipment(editingAsset.id, {
         ...data,
         price: parseFloat(data.price),
+        usefulLife: data.usefulLife ? parseInt(data.usefulLife) : undefined,
         updatedAt: now,
       });
     } else {
       addEquipment({
         ...data,
         price: parseFloat(data.price),
+        usefulLife: data.usefulLife ? parseInt(data.usefulLife) : undefined,
         createdAt: now,
         updatedAt: now,
       });
@@ -128,6 +133,7 @@ export default function AssetManagement() {
         quantity,
         unitPrice,
         totalPrice: quantity * unitPrice,
+        shelfLife: data.shelfLife ? parseInt(data.shelfLife) : undefined,
         updatedAt: now,
       });
     } else {
@@ -136,6 +142,7 @@ export default function AssetManagement() {
         quantity,
         unitPrice,
         totalPrice: quantity * unitPrice,
+        shelfLife: data.shelfLife ? parseInt(data.shelfLife) : undefined,
         createdAt: now,
         updatedAt: now,
       });
@@ -191,6 +198,10 @@ export default function AssetManagement() {
     ? Object.entries(equipmentStatusConfig).map(([value, { label }]) => ({ value, label }))
     : Object.entries(suppliesStatusConfig).map(([value, { label }]) => ({ value, label }));
 
+  const categoryOptions = activeTab === 'equipment'
+    ? Object.entries(equipmentTypeConfig).map(([value, label]) => ({ value, label }))
+    : Object.entries(suppliesCategoryConfig).map(([value, label]) => ({ value, label }));
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
@@ -210,6 +221,7 @@ export default function AssetManagement() {
             setSearchTerm('');
             setStatusFilter('');
             setDepartmentFilter('');
+            setCategoryFilter('');
           }}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
             activeTab === 'equipment'
@@ -226,6 +238,7 @@ export default function AssetManagement() {
             setSearchTerm('');
             setStatusFilter('');
             setDepartmentFilter('');
+            setCategoryFilter('');
           }}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
             activeTab === 'supplies'
@@ -254,7 +267,7 @@ export default function AssetManagement() {
             <Filter className="w-4 h-4 text-gray-400" />
             <span className="text-sm text-gray-500">筛选条件：</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2 min-w-[140px]">
               <span className="text-sm text-gray-500">状态：</span>
               <Select
@@ -264,6 +277,21 @@ export default function AssetManagement() {
               >
                 <option value="">全部</option>
                 {statusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <span className="text-sm text-gray-500">{activeTab === 'equipment' ? '装备类型' : '物资类别'}：</span>
+              <Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="min-w-[100px]"
+              >
+                <option value="">全部</option>
+                {categoryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -291,6 +319,7 @@ export default function AssetManagement() {
               onClick={() => {
                 setStatusFilter('');
                 setDepartmentFilter('');
+                setCategoryFilter('');
                 setSearchTerm('');
               }}
             >
@@ -457,12 +486,14 @@ export default function AssetManagement() {
             ? {
                 ...editingAsset,
                 price: (editingAsset as Equipment).price.toString(),
+                usefulLife: (editingAsset as Equipment).usefulLife?.toString() || '',
               }
             : {
                 ...editingAsset,
                 quantity: (editingAsset as Supplies).quantity.toString(),
                 unitPrice: (editingAsset as Supplies).unitPrice.toString(),
                 totalPrice: (editingAsset as Supplies).totalPrice.toString(),
+                shelfLife: (editingAsset as Supplies).shelfLife?.toString() || '',
               }) : undefined}
           onSubmit={handleSubmit}
           onCancel={closeForm}

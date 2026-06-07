@@ -62,8 +62,11 @@ export default function AssetForm({
           type: '',
           model: '',
           manufacturer: '',
+          brandSeries: '',
+          assetNumber: '',
           purchaseDate: '',
           price: '',
+          usefulLife: '',
           location: '',
           departmentId: '',
           responsiblePerson: '',
@@ -73,6 +76,8 @@ export default function AssetForm({
           name: '',
           code: '',
           category: '',
+          brandSeries: '',
+          assetNumber: '',
           unit: '',
           quantity: '',
           unitPrice: '',
@@ -80,6 +85,7 @@ export default function AssetForm({
           location: '',
           departmentId: '',
           purchaseDate: '',
+          shelfLife: '',
           status: 'in-stock',
         }
   );
@@ -250,6 +256,28 @@ export default function AssetForm({
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
+                    品牌系列
+                  </label>
+                  <Input
+                    value={(formData as EquipmentFormData).brandSeries || ''}
+                    onChange={(e) => handleChange('brandSeries', e.target.value)}
+                    placeholder="请输入品牌系列"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    资产编号
+                  </label>
+                  <Input
+                    value={(formData as EquipmentFormData).assetNumber || ''}
+                    onChange={(e) => handleChange('assetNumber', e.target.value)}
+                    placeholder="请输入资产编号"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
                     采购价格 <span className="text-error-500">*</span>
                   </label>
                   <Input
@@ -259,6 +287,20 @@ export default function AssetForm({
                     placeholder="请输入采购价格"
                     status={errors.price ? 'error' : 'default'}
                     errorMessage={errors.price}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    使用年限（年）
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={(formData as EquipmentFormData).usefulLife || ''}
+                    onChange={(e) => handleChange('usefulLife', e.target.value)}
+                    placeholder="请输入使用年限"
                   />
                 </div>
 
@@ -304,6 +346,28 @@ export default function AssetForm({
                       </option>
                     ))}
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    品牌系列
+                  </label>
+                  <Input
+                    value={(formData as SuppliesFormData).brandSeries || ''}
+                    onChange={(e) => handleChange('brandSeries', e.target.value)}
+                    placeholder="请输入品牌系列"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    资产编号
+                  </label>
+                  <Input
+                    value={(formData as SuppliesFormData).assetNumber || ''}
+                    onChange={(e) => handleChange('assetNumber', e.target.value)}
+                    placeholder="请输入资产编号"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -355,6 +419,20 @@ export default function AssetForm({
                     value={(formData as SuppliesFormData).supplier || ''}
                     onChange={(e) => handleChange('supplier', e.target.value)}
                     placeholder="请输入供应商"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    保质期（月）
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="360"
+                    value={(formData as SuppliesFormData).shelfLife || ''}
+                    onChange={(e) => handleChange('shelfLife', e.target.value)}
+                    placeholder="请输入保质期"
                   />
                 </div>
 
