@@ -1,39 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit, Archive, X, Check, Building2, Users, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, File } from 'lucide-react';
 import { Organization, Department } from '@/types';
 import { Button, Input, Select, Card, CardHeader, CardTitle, CardBody, Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell, Modal, Badge } from '@/components';
-
-const mockOrganizations: Organization[] = [
-  { id: '1', name: '县政府办公室', code: 'XZFB', address: '县政府大楼1层', phone: '0123-4567890', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '发展和改革局', code: 'FGJ', address: '行政服务中心3层', phone: '0123-4567891', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '3', name: '财政局', code: 'CZJ', address: '财政大厦5层', phone: '0123-4567892', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '4', name: '人力资源和社会保障局', code: 'RSJ', address: '人社局大楼', phone: '0123-4567893', status: 'archived', createdAt: '2024-01-04', updatedAt: '2024-06-01' },
-];
-
-const mockDepartments: Department[] = [
-  { id: '1', name: '综合科', code: 'ZH', organizationId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '文秘科', code: 'WM', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '3', name: '机要室', code: 'JY', organizationId: '1', parentId: '2', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '4', name: '信息科', code: 'XX', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '5', name: '规划科', code: 'GH', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '6', name: '项目审批股', code: 'XM', organizationId: '2', parentId: '5', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '7', name: '投资科', code: 'TZ', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '8', name: '预算科', code: 'YS', organizationId: '3', status: 'active', createdAt: '2024-01-04', updatedAt: '2024-01-04' },
-  { id: '9', name: '国库科', code: 'GK', organizationId: '3', parentId: '8', status: 'archived', createdAt: '2024-01-04', updatedAt: '2024-05-15' },
-  { id: '10', name: '绩效评价股', code: 'JX', organizationId: '3', parentId: '8', status: 'active', createdAt: '2024-01-05', updatedAt: '2024-01-05' },
-];
+import {
+  getOrganizations,
+  getDepartments,
+  addOrganization,
+  updateOrganization,
+  addDepartment,
+  updateDepartment,
+  updateOrganizationStatus,
+  updateDepartmentStatus,
+  checkOrgCodeExists,
+  checkDeptCodeExists,
+  subscribe,
+} from '../store/dataStore';
 
 type ActiveTab = 'organization' | 'department';
 
 type FormType = 'add' | 'edit';
-
-interface FormData {
-  name: string;
-  code: string;
-  address?: string;
-  phone?: string;
-  organizationId?: string;
-}
 
 interface FormData {
   name: string;
@@ -46,8 +31,8 @@ interface FormData {
 
 export default function OrganizationManagement() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('organization');
-  const [organizations, setOrganizations] = useState<Organization[]>(mockOrganizations);
-  const [departments, setDepartments] = useState<Department[]>(mockDepartments);
+  const [organizations, setOrganizations] = useState<Organization[]>(getOrganizations());
+  const [departments, setDepartments] = useState<Department[]>(getDepartments());
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formType, setFormType] = useState<FormType>('add');
@@ -55,8 +40,16 @@ export default function OrganizationManagement() {
   const [formData, setFormData] = useState<FormData>({ name: '', code: '', address: '', phone: '', organizationId: '', parentId: '' });
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorFields, setErrorFields] = useState<string[]>([]);
-  const [fieldErrors, setFieldErrors] = useState({ name: false, code: false, organizationId: false, parentId: false });
+  const [fieldErrors, setFieldErrors] = useState({ name: false, code: false, phone: false, organizationId: false, parentId: false });
   const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const unsubscribe = subscribe(() => {
+      setOrganizations(getOrganizations());
+      setDepartments(getDepartments());
+    });
+    return unsubscribe;
+  }, []);
 
   const filteredOrganizations = organizations.filter((org) =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,11 +70,11 @@ export default function OrganizationManagement() {
   const departmentTree = useMemo(() => {
     const tree: Department[] = [];
     const deptMap = new Map<string, Department>();
-    
-    filteredDepartments.forEach(dept => {
+
+    filteredDepartments.forEach((dept) => {
       deptMap.set(dept.id, { ...dept, children: [] as Department[] });
     });
-    
+
     deptMap.forEach((dept) => {
       if (dept.parentId && deptMap.has(dept.parentId)) {
         const parent = deptMap.get(dept.parentId)!;
@@ -91,12 +84,12 @@ export default function OrganizationManagement() {
         tree.push(dept);
       }
     });
-    
+
     return tree;
   }, [filteredDepartments]);
 
   const toggleExpand = (deptId: string) => {
-    setExpandedDepts(prev => {
+    setExpandedDepts((prev) => {
       const next = new Set(prev);
       if (next.has(deptId)) {
         next.delete(deptId);
@@ -134,19 +127,15 @@ export default function OrganizationManagement() {
         newFieldErrors.code = true;
       } else {
         if (activeTab === 'organization') {
-          const isDuplicate = organizations.some((org) => 
-            org.code === formData.code && org.id !== editingItem?.id
-          );
+          const isDuplicate = checkOrgCodeExists(formData.code, editingItem?.id);
           if (isDuplicate) {
-            errors.push('该单位编码已存在');
+            errors.push('该单位编码已存在，请使用其他编码');
             newFieldErrors.code = true;
           }
         } else {
-          const isDuplicate = departments.some((dept) => 
-            dept.code === formData.code && dept.organizationId === formData.organizationId && dept.id !== editingItem?.id
-          );
+          const isDuplicate = checkDeptCodeExists(formData.code, editingItem?.id);
           if (isDuplicate) {
-            errors.push('同一单位下该部门编码已存在');
+            errors.push('该部门编码已存在，请使用其他编码');
             newFieldErrors.code = true;
           }
         }
@@ -168,7 +157,7 @@ export default function OrganizationManagement() {
     }
 
     if (activeTab === 'department' && formData.parentId) {
-      const parentDept = departments.find(d => d.id === formData.parentId);
+      const parentDept = departments.find((d) => d.id === formData.parentId);
       if (!parentDept || parentDept.organizationId !== formData.organizationId) {
         errors.push('上级部门必须属于同一单位');
         newFieldErrors.parentId = true;
@@ -187,32 +176,21 @@ export default function OrganizationManagement() {
 
   const handleAdd = () => {
     if (!validateForm()) return;
-    const now = new Date().toISOString().split('T')[0];
 
     if (activeTab === 'organization') {
-      const org: Organization = {
-        id: Date.now().toString(),
+      addOrganization({
         name: formData.name,
         code: formData.code,
         address: formData.address,
         phone: formData.phone,
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      };
-      setOrganizations([...organizations, org]);
+      });
     } else {
-      const dept: Department = {
-        id: Date.now().toString(),
+      addDepartment({
         name: formData.name,
         code: formData.code,
         organizationId: formData.organizationId!,
         parentId: formData.parentId || undefined,
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      };
-      setDepartments([...departments, dept]);
+      });
     }
 
     resetForm();
@@ -220,20 +198,21 @@ export default function OrganizationManagement() {
 
   const handleUpdate = () => {
     if (!validateForm()) return;
-    const now = new Date().toISOString().split('T')[0];
 
     if (activeTab === 'organization' && editingItem) {
-      setOrganizations(organizations.map((org) =>
-        org.id === editingItem.id
-          ? { ...org, ...formData, updatedAt: now }
-          : org
-      ));
+      updateOrganization(editingItem.id, {
+        name: formData.name,
+        code: formData.code,
+        address: formData.address,
+        phone: formData.phone,
+      });
     } else if (activeTab === 'department' && editingItem) {
-      setDepartments(departments.map((dept) =>
-        dept.id === editingItem.id
-          ? { ...dept, ...formData, updatedAt: now }
-          : dept
-      ));
+      updateDepartment(editingItem.id, {
+        name: formData.name,
+        code: formData.code,
+        organizationId: formData.organizationId!,
+        parentId: formData.parentId || undefined,
+      });
     }
 
     resetForm();
@@ -242,13 +221,9 @@ export default function OrganizationManagement() {
   const handleArchive = (id: string) => {
     if (confirm('确定要归档此项吗？归档后将不再显示在列表中。')) {
       if (activeTab === 'organization') {
-        setOrganizations(organizations.map((org) =>
-          org.id === id ? { ...org, status: 'archived', updatedAt: new Date().toISOString().split('T')[0] } : org
-        ));
+        updateOrganizationStatus(id, 'archived');
       } else {
-        setDepartments(departments.map((dept) =>
-          dept.id === id ? { ...dept, status: 'archived', updatedAt: new Date().toISOString().split('T')[0] } : dept
-        ));
+        updateDepartmentStatus(id, 'archived');
       }
     }
   };
@@ -298,6 +273,10 @@ export default function OrganizationManagement() {
     return organizations.find((o) => o.id === orgId)?.name || '未知单位';
   };
 
+  const getParentDeptName = (deptId: string) => {
+    return departments.find((d) => d.id === deptId)?.name || '-';
+  };
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
@@ -312,7 +291,10 @@ export default function OrganizationManagement() {
 
       <div className="flex bg-gray-100 p-1 rounded-xl w-fit mb-6">
         <button
-          onClick={() => { setActiveTab('organization'); setSearchTerm(''); }}
+          onClick={() => {
+            setActiveTab('organization');
+            setSearchTerm('');
+          }}
           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all ${
             activeTab === 'organization'
               ? 'bg-white shadow-sm text-primary-600'
@@ -323,7 +305,10 @@ export default function OrganizationManagement() {
           单位管理
         </button>
         <button
-          onClick={() => { setActiveTab('department'); setSearchTerm(''); }}
+          onClick={() => {
+            setActiveTab('department');
+            setSearchTerm('');
+          }}
           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all ${
             activeTab === 'department'
               ? 'bg-white shadow-sm text-primary-600'
@@ -355,6 +340,7 @@ export default function OrganizationManagement() {
                 <TableHeaderCell>编码</TableHeaderCell>
                 {activeTab === 'organization' && <TableHeaderCell>地址</TableHeaderCell>}
                 {activeTab === 'department' && <TableHeaderCell>所属单位</TableHeaderCell>}
+                {activeTab === 'department' && <TableHeaderCell>上级部门</TableHeaderCell>}
                 <TableHeaderCell>状态</TableHeaderCell>
                 <TableHeaderCell>创建日期</TableHeaderCell>
                 <TableHeaderCell align="center">操作</TableHeaderCell>
@@ -406,9 +392,7 @@ export default function OrganizationManagement() {
                               size="sm"
                               onClick={() => {
                                 if (confirm('确定要恢复此项吗？')) {
-                                  setOrganizations(organizations.map((org) =>
-                                    org.id === item.id ? { ...org, status: 'active' } : org
-                                  ));
+                                  updateOrganizationStatus(item.id, 'active');
                                 }
                               }}
                               className="p-2"
@@ -427,7 +411,7 @@ export default function OrganizationManagement() {
                     const children = (department as Department & { children?: Department[] }).children || [];
                     const hasKids = children.length > 0;
                     const expanded = isExpanded(department.id);
-                    
+
                     return (
                       <>
                         <TableRow key={department.id}>
@@ -462,6 +446,7 @@ export default function OrganizationManagement() {
                           </TableCell>
                           <TableCell>{department.code}</TableCell>
                           <TableCell>{getOrgName(department.organizationId)}</TableCell>
+                          <TableCell>{department.parentId ? getParentDeptName(department.parentId) : '-'}</TableCell>
                           <TableCell>
                             <Badge variant={department.status === 'active' ? 'success' : 'secondary'}>
                               {department.status === 'active' ? '正常' : '已归档'}
@@ -494,9 +479,7 @@ export default function OrganizationManagement() {
                                   size="sm"
                                   onClick={() => {
                                     if (confirm('确定要恢复此项吗？')) {
-                                      setDepartments(departments.map((d) =>
-                                        d.id === department.id ? { ...d, status: 'active' } : d
-                                      ));
+                                      updateDepartmentStatus(department.id, 'active');
                                     }
                                   }}
                                   className="p-2"
@@ -511,7 +494,7 @@ export default function OrganizationManagement() {
                       </>
                     );
                   };
-                  
+
                   return renderDeptRow(dept, 0);
                 })
               )}
@@ -589,12 +572,17 @@ export default function OrganizationManagement() {
                 </label>
                 <Select
                   value={formData.organizationId || ''}
-                  onChange={(e) => handleInputChange('organizationId', e.target.value)}
+                  onChange={(e) => {
+                    handleInputChange('organizationId', e.target.value);
+                    setFormData({ ...formData, organizationId: e.target.value, parentId: '' });
+                  }}
                   status={fieldErrors.organizationId ? 'error' : 'default'}
                 >
                   <option value="">请选择所属单位</option>
                   {activeOrgs.map((org) => (
-                    <option key={org.id} value={org.id}>{org.name}</option>
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
                   ))}
                 </Select>
               </div>
@@ -606,11 +594,19 @@ export default function OrganizationManagement() {
                   status={fieldErrors.parentId ? 'error' : 'default'}
                 >
                   <option value="">无（作为一级部门）</option>
-                  {formData.organizationId && departments
-                    .filter(d => d.organizationId === formData.organizationId && d.status === 'active' && d.id !== editingItem?.id)
-                    .map((dept) => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
+                  {formData.organizationId &&
+                    departments
+                      .filter(
+                        (d) =>
+                          d.organizationId === formData.organizationId &&
+                          d.status === 'active' &&
+                          d.id !== editingItem?.id
+                      )
+                      .map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
                 </Select>
               </div>
             </>
@@ -629,10 +625,10 @@ export default function OrganizationManagement() {
 
       <Modal isOpen={showErrorModal} onClose={handleCloseErrorModal} title="提示" type="error">
         <div>
-          <p className="text-gray-600 mb-4">请填写以下必填项</p>
+          <p className="text-gray-600 mb-4">请修正以下问题：</p>
           {errorFields.length > 0 && (
             <div className="bg-error-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-error-700 mb-2">未填写的项目:</p>
+              <p className="text-sm font-medium text-error-700 mb-2">错误信息:</p>
               <ul className="space-y-2">
                 {errorFields.map((field, index) => (
                   <li key={index} className="flex items-center gap-2 text-sm text-error-600">

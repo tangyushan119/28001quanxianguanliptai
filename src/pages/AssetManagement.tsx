@@ -1,36 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, X, Wrench, Package, Filter, Eye, Edit2, Trash2 } from 'lucide-react';
 import { Equipment, Supplies, Department, Organization, EquipmentFormData, SuppliesFormData } from '../types';
 import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select, Badge } from '../components';
 import AssetForm, { AssetType } from '../components/AssetForm';
 import Table, { TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '../components/Table';
-
-const mockOrganizations: Organization[] = [
-  { id: '1', name: '县政府办公室', code: 'XZFB', address: '县政府大楼1层', phone: '0123-4567890', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '发展和改革局', code: 'FGJ', address: '行政服务中心3层', phone: '0123-4567891', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '3', name: '财政局', code: 'CZJ', address: '财政大厦5层', phone: '0123-4567892', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-];
-
-const mockDepartments: Department[] = [
-  { id: '1', name: '综合科', code: 'ZH', organizationId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '文秘科', code: 'WM', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '3', name: '规划科', code: 'GH', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '4', name: '预算科', code: 'YS', organizationId: '3', status: 'active', createdAt: '2024-01-04', updatedAt: '2024-01-04' },
-];
-
-const mockEquipments: Equipment[] = [
-  { id: '1', name: '台式电脑', code: 'EQ001', type: 'computer', model: 'ThinkPad M900', manufacturer: '联想', purchaseDate: '2023-05-15', price: 5800, location: '县政府大楼301室', departmentId: '1', responsiblePerson: '张三', status: 'in-use', warrantyEndDate: '2025-05-15', description: '办公用台式机', createdAt: '2023-05-15', updatedAt: '2023-05-15' },
-  { id: '2', name: '笔记本电脑', code: 'EQ002', type: 'computer', model: 'MacBook Pro 14', manufacturer: '苹果', purchaseDate: '2023-08-20', price: 12500, location: '县政府大楼302室', departmentId: '2', responsiblePerson: '李四', status: 'in-use', warrantyEndDate: '2025-08-20', createdAt: '2023-08-20', updatedAt: '2023-08-20' },
-  { id: '3', name: '打印机', code: 'EQ003', type: 'office', model: 'HP LaserJet Pro', manufacturer: '惠普', purchaseDate: '2022-11-10', price: 2300, location: '行政服务中心305室', departmentId: '3', responsiblePerson: '王五', status: 'maintenance', createdAt: '2022-11-10', updatedAt: '2024-01-10' },
-  { id: '4', name: '投影仪', code: 'EQ004', type: 'office', model: 'EPSON CB-X06', manufacturer: '爱普生', purchaseDate: '2023-03-05', price: 3800, location: '财政大厦会议室', departmentId: '4', responsiblePerson: '赵六', status: 'idle', createdAt: '2023-03-05', updatedAt: '2023-03-05' },
-];
-
-const mockSupplies: Supplies[] = [
-  { id: '1', name: 'A4打印纸', code: 'SP001', category: 'stationery', unit: '箱', quantity: 50, unitPrice: 85, totalPrice: 4250, location: '仓库A区', departmentId: '1', supplier: '得力文具', purchaseDate: '2024-01-05', status: 'in-stock', createdAt: '2024-01-05', updatedAt: '2024-01-05' },
-  { id: '2', name: '签字笔', code: 'SP002', category: 'stationery', unit: '盒', quantity: 200, unitPrice: 15, totalPrice: 3000, location: '仓库A区', departmentId: '2', supplier: '晨光文具', purchaseDate: '2024-02-10', status: 'in-stock', createdAt: '2024-02-10', updatedAt: '2024-02-10' },
-  { id: '3', name: '办公椅', code: 'SP003', category: 'furniture', unit: '把', quantity: 20, unitPrice: 350, totalPrice: 7000, location: '仓库B区', departmentId: '3', purchaseDate: '2023-12-15', status: 'in-use', createdAt: '2023-12-15', updatedAt: '2023-12-15' },
-  { id: '4', name: '消毒液', code: 'SP004', category: 'cleaning', unit: '瓶', quantity: 10, unitPrice: 25, totalPrice: 250, location: '仓库C区', departmentId: '4', purchaseDate: '2024-03-01', expirationDate: '2025-03-01', status: 'low-stock', createdAt: '2024-03-01', updatedAt: '2024-03-01' },
-];
+import { getOrganizations, getDepartments, getEquipments, getSupplies, addEquipment, updateEquipment, deleteEquipment, addSupplies, updateSupplies, deleteSupplies, subscribe } from '../store/dataStore';
 
 const equipmentStatusConfig = {
   'in-use': { label: '使用中', variant: 'success' as const },
@@ -64,10 +38,10 @@ const suppliesCategoryConfig = {
 
 export default function AssetManagement() {
   const [activeTab, setActiveTab] = useState<AssetType>('equipment');
-  const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
-  const [supplies, setSupplies] = useState<Supplies[]>(mockSupplies);
-  const [departments] = useState<Department[]>(mockDepartments);
-  const [organizations] = useState<Organization[]>(mockOrganizations);
+  const [equipments, setEquipments] = useState<Equipment[]>(getEquipments());
+  const [supplies, setSupplies] = useState<Supplies[]>(getSupplies());
+  const [departments, setDepartments] = useState<Department[]>(getDepartments());
+  const [organizations, setOrganizations] = useState<Organization[]>(getOrganizations());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
@@ -75,6 +49,15 @@ export default function AssetManagement() {
   const [showDetail, setShowDetail] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Equipment | Supplies | null>(null);
   const [viewingAsset, setViewingAsset] = useState<Equipment | Supplies | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribe(() => {
+      setDepartments(getDepartments());
+      setEquipments(getEquipments());
+      setSupplies(getSupplies());
+    });
+    return unsubscribe;
+  }, []);
 
   const activeDepartments = departments.filter((d) => d.status === 'active');
 
@@ -117,27 +100,18 @@ export default function AssetManagement() {
     const now = new Date().toISOString().split('T')[0];
 
     if (editingAsset && (editingAsset as Equipment).type) {
-      setEquipments(
-        equipments.map((eq) =>
-          eq.id === editingAsset.id
-            ? {
-                ...eq,
-                ...data,
-                price: parseFloat(data.price),
-                updatedAt: now,
-              }
-            : eq
-        )
-      );
+      updateEquipment(editingAsset.id, {
+        ...data,
+        price: parseFloat(data.price),
+        updatedAt: now,
+      });
     } else {
-      const newEquipment: Equipment = {
-        id: Date.now().toString(),
+      addEquipment({
         ...data,
         price: parseFloat(data.price),
         createdAt: now,
         updatedAt: now,
-      };
-      setEquipments([...equipments, newEquipment]);
+      });
     }
 
     closeForm();
@@ -149,31 +123,22 @@ export default function AssetManagement() {
     const unitPrice = parseFloat(data.unitPrice);
 
     if (editingAsset && !(editingAsset as Equipment).type) {
-      setSupplies(
-        supplies.map((sp) =>
-          sp.id === editingAsset.id
-            ? {
-                ...sp,
-                ...data,
-                quantity,
-                unitPrice,
-                totalPrice: quantity * unitPrice,
-                updatedAt: now,
-              }
-            : sp
-        )
-      );
+      updateSupplies(editingAsset.id, {
+        ...data,
+        quantity,
+        unitPrice,
+        totalPrice: quantity * unitPrice,
+        updatedAt: now,
+      });
     } else {
-      const newSupplies: Supplies = {
-        id: Date.now().toString(),
+      addSupplies({
         ...data,
         quantity,
         unitPrice,
         totalPrice: quantity * unitPrice,
         createdAt: now,
         updatedAt: now,
-      };
-      setSupplies([...supplies, newSupplies]);
+      });
     }
 
     closeForm();
@@ -200,9 +165,9 @@ export default function AssetManagement() {
   const handleDelete = (id: string) => {
     if (confirm('确定要删除该资产信息吗？')) {
       if (activeTab === 'equipment') {
-        setEquipments(equipments.filter((eq) => eq.id !== id));
+        deleteEquipment(id);
       } else {
-        setSupplies(supplies.filter((sp) => sp.id !== id));
+        deleteSupplies(id);
       }
     }
   };

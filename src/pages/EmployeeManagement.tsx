@@ -1,29 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, X, User, Filter } from 'lucide-react';
 import { Employee, Department, Organization, EmployeeFormData } from '../types';
 import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select } from '../components';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeList from '../components/EmployeeList';
-
-const mockOrganizations: Organization[] = [
-  { id: '1', name: '县政府办公室', code: 'XZFB', address: '县政府大楼1层', phone: '0123-4567890', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '发展和改革局', code: 'FGJ', address: '行政服务中心3层', phone: '0123-4567891', status: 'active', createdAt: '2024-01-02', updatedAt: '2024-01-02' },
-  { id: '3', name: '财政局', code: 'CZJ', address: '财政大厦5层', phone: '0123-4567892', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-];
-
-const mockDepartments: Department[] = [
-  { id: '1', name: '综合科', code: 'ZH', organizationId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '2', name: '文秘科', code: 'WM', organizationId: '1', parentId: '1', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-  { id: '3', name: '规划科', code: 'GH', organizationId: '2', status: 'active', createdAt: '2024-01-03', updatedAt: '2024-01-03' },
-  { id: '4', name: '预算科', code: 'YS', organizationId: '3', status: 'active', createdAt: '2024-01-04', updatedAt: '2024-01-04' },
-];
-
-const mockEmployees: Employee[] = [
-  { id: '1', name: '张三', employeeId: 'EMP001', gender: 'male', birthDate: '1990-01-15', phone: '13800138001', email: 'zhangsan@example.com', address: '北京市朝阳区', departmentId: '1', position: '科长', employmentType: 'full-time', hireDate: '2020-03-15', status: 'active', createdAt: '2020-03-15', updatedAt: '2020-03-15' },
-  { id: '2', name: '李四', employeeId: 'EMP002', gender: 'female', birthDate: '1992-05-20', phone: '13900139002', email: 'lisi@example.com', address: '北京市海淀区', departmentId: '2', position: '科员', employmentType: 'full-time', hireDate: '2021-06-01', status: 'active', createdAt: '2021-06-01', updatedAt: '2021-06-01' },
-  { id: '3', name: '王五', employeeId: 'EMP003', gender: 'male', birthDate: '1988-11-08', phone: '13700137003', email: 'wangwu@example.com', departmentId: '3', position: '副科长', employmentType: 'full-time', hireDate: '2019-09-10', status: 'on-leave', createdAt: '2019-09-10', updatedAt: '2024-01-15' },
-  { id: '4', name: '赵六', employeeId: 'EMP004', gender: 'female', birthDate: '1995-03-25', phone: '13600136004', email: 'zhaoliu@example.com', departmentId: '4', position: '会计', employmentType: 'contract', hireDate: '2022-01-10', status: 'active', createdAt: '2022-01-10', updatedAt: '2022-01-10' },
-];
+import { getOrganizations, getDepartments, getEmployees, addEmployee, updateEmployee, subscribe } from '../store/dataStore';
 
 const statusConfig = {
   active: { label: '在职', variant: 'success' as const },
@@ -43,9 +24,9 @@ const genderConfig = {
 };
 
 export default function EmployeeManagement() {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
-  const [departments] = useState<Department[]>(mockDepartments);
-  const [organizations] = useState<Organization[]>(mockOrganizations);
+  const [employees, setEmployees] = useState<Employee[]>(getEmployees());
+  const [departments, setDepartments] = useState<Department[]>(getDepartments());
+  const [organizations] = useState<Organization[]>(getOrganizations());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('');
@@ -53,6 +34,13 @@ export default function EmployeeManagement() {
   const [showDetail, setShowDetail] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribe(() => {
+      setDepartments(getDepartments());
+    });
+    return unsubscribe;
+  }, []);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((emp) => {
@@ -80,24 +68,10 @@ export default function EmployeeManagement() {
   };
 
   const handleSubmit = (data: EmployeeFormData) => {
-    const now = new Date().toISOString().split('T')[0];
-    
     if (editingEmployee) {
-      setEmployees(
-        employees.map((emp) =>
-          emp.id === editingEmployee.id
-            ? { ...emp, ...data, updatedAt: now }
-            : emp
-        )
-      );
+      updateEmployee(editingEmployee.id, data);
     } else {
-      const newEmployee: Employee = {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setEmployees([...employees, newEmployee]);
+      addEmployee(data);
     }
     
     closeForm();
