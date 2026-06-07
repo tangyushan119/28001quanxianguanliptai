@@ -271,4 +271,176 @@ describe('OrganizationManagement Page', () => {
       expect(screen.queryByRole('dialog', { name: '提示' })).not.toBeInTheDocument();
     });
   });
+
+  it('shows error when organization code is too short', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '测试单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'AB' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '提示' })).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '提示' });
+    expect(within(dialog).getByText('编码格式不正确')).toBeInTheDocument();
+  });
+
+  it('shows error when organization code contains lowercase', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '测试单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'Abc' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '提示' })).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '提示' });
+    expect(within(dialog).getByText('编码格式不正确')).toBeInTheDocument();
+  });
+
+  it('shows error when organization code already exists', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '重复单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'XZFB' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '提示' })).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '提示' });
+    expect(within(dialog).getByText('该单位编码已存在')).toBeInTheDocument();
+  });
+
+  it('shows error when department code already exists in same organization', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const deptTab = screen.getByRole('button', { name: '部门管理' });
+    fireEvent.click(deptTab);
+
+    const addButton = screen.getByRole('button', { name: '新增部门' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入部门名称'), { target: { value: '重复部门' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'ZH' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '提示' })).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '提示' });
+    expect(within(dialog).getByText('同一单位下该部门编码已存在')).toBeInTheDocument();
+  });
+
+  it('shows error when phone number format is invalid', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '测试单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'TEST' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入联系电话（固定电话如010-12345678或手机号）'), { target: { value: '123456' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '提示' })).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '提示' });
+    expect(within(dialog).getByText('电话号码格式不正确')).toBeInTheDocument();
+  });
+
+  it('accepts valid phone number formats', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('有效电话单位')).not.toBeInTheDocument();
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '有效电话单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'TEST' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入联系电话（固定电话如010-12345678或手机号）'), { target: { value: '13812345678' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('有效电话单位')).toBeInTheDocument();
+    });
+  });
+
+  it('accepts valid fixed phone number format', async () => {
+    render(
+      <MemoryRouter>
+        <OrganizationManagement />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('固定电话单位')).not.toBeInTheDocument();
+
+    const addButton = screen.getByRole('button', { name: '新增单位' });
+    fireEvent.click(addButton);
+
+    fireEvent.change(screen.getByPlaceholderText('请输入单位名称'), { target: { value: '固定电话单位' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入编码'), { target: { value: 'TEST' } });
+    fireEvent.change(screen.getByPlaceholderText('请输入联系电话（固定电话如010-12345678或手机号）'), { target: { value: '010-12345678' } });
+
+    const submitButton = screen.getByRole('button', { name: '新增' });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('固定电话单位')).toBeInTheDocument();
+    });
+  });
 });

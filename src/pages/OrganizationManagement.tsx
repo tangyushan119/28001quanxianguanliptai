@@ -63,18 +63,55 @@ export default function OrganizationManagement() {
 
   const validateForm = (): boolean => {
     const errors: string[] = [];
-    const newFieldErrors = { name: false, code: false, organizationId: false };
+    const newFieldErrors = { name: false, code: false, phone: false, organizationId: false };
 
     if (!formData.name.trim()) {
-      errors.push('名称');
+      errors.push('名称不能为空');
       newFieldErrors.name = true;
     }
+
     if (!formData.code.trim()) {
-      errors.push('编码');
+      errors.push('编码不能为空');
       newFieldErrors.code = true;
+    } else {
+      const codeRegex = activeTab === 'organization' ? /^[A-Z]{3,6}$/ : /^[A-Z]{2,4}$/;
+      if (!codeRegex.test(formData.code)) {
+        const minLen = activeTab === 'organization' ? 3 : 2;
+        const maxLen = activeTab === 'organization' ? 6 : 4;
+        errors.push(`编码格式不正确，应为${minLen}-${maxLen}位大写字母`);
+        newFieldErrors.code = true;
+      } else {
+        if (activeTab === 'organization') {
+          const isDuplicate = organizations.some((org) => 
+            org.code === formData.code && org.id !== editingItem?.id
+          );
+          if (isDuplicate) {
+            errors.push('该单位编码已存在');
+            newFieldErrors.code = true;
+          }
+        } else {
+          const isDuplicate = departments.some((dept) => 
+            dept.code === formData.code && dept.organizationId === formData.organizationId && dept.id !== editingItem?.id
+          );
+          if (isDuplicate) {
+            errors.push('同一单位下该部门编码已存在');
+            newFieldErrors.code = true;
+          }
+        }
+      }
     }
+
+    if (formData.phone && formData.phone.trim()) {
+      const phone = formData.phone.trim();
+      const phoneRegex = /^(0\d{2,3}-\d{7,8})|(1[3-9]\d{9})$/;
+      if (!phoneRegex.test(phone)) {
+        errors.push('电话号码格式不正确，应为固定电话(如010-12345678)或手机号(11位)');
+        newFieldErrors.phone = true;
+      }
+    }
+
     if (activeTab === 'department' && !formData.organizationId) {
-      errors.push('所属单位');
+      errors.push('所属单位不能为空');
       newFieldErrors.organizationId = true;
     }
 
@@ -165,7 +202,7 @@ export default function OrganizationManagement() {
       const dept = item as Department;
       setFormData({ name: dept.name, code: dept.code, organizationId: dept.organizationId });
     }
-    setFieldErrors({ name: false, code: false, organizationId: false });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
     setShowModal(true);
   };
 
@@ -173,7 +210,7 @@ export default function OrganizationManagement() {
     setEditingItem(null);
     setFormType('add');
     setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id });
-    setFieldErrors({ name: false, code: false, organizationId: false });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
     setShowModal(true);
   };
 
@@ -181,13 +218,14 @@ export default function OrganizationManagement() {
     setShowModal(false);
     setEditingItem(null);
     setFormData({ name: '', code: '', address: '', phone: '', organizationId: activeOrgs[0]?.id });
-    setFieldErrors({ name: false, code: false, organizationId: false });
+    setFieldErrors({ name: false, code: false, phone: false, organizationId: false });
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData({ ...formData, [field]: value });
-    if (fieldErrors[field as keyof typeof fieldErrors]) {
-      setFieldErrors({ ...fieldErrors, [field]: false });
+    const fieldErrorKey = field as keyof typeof fieldErrors;
+    if (fieldErrors[fieldErrorKey]) {
+      setFieldErrors({ ...fieldErrors, [fieldErrorKey]: false });
     }
   };
 
@@ -385,7 +423,8 @@ export default function OrganizationManagement() {
                   type="text"
                   value={formData.phone || ''}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="请输入联系电话"
+                  placeholder="请输入联系电话（固定电话如010-12345678或手机号）"
+                  status={fieldErrors.phone ? 'error' : 'default'}
                 />
               </div>
             </>
