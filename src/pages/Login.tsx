@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, LogIn } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import Modal from '@/components/Modal';
 
 export default function Login() {
@@ -53,7 +53,7 @@ export default function Login() {
       setModalFields(['用户名或密码错误']);
       setModalIsOpen(true);
     } else {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   };
 

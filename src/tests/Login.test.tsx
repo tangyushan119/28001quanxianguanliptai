@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/Login';
+import { AuthProvider } from '../contexts/AuthContext';
 
 const mockNavigate = jest.fn();
 
@@ -9,17 +10,20 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MemoryRouter>
+    <AuthProvider>{children}</AuthProvider>
+  </MemoryRouter>
+);
+
 describe('Login Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
   });
 
   it('renders login form correctly', () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('请输入密码')).toBeInTheDocument();
@@ -27,11 +31,7 @@ describe('Login Page', () => {
   });
 
   it('shows modal with required fields when form is submitted empty', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
 
@@ -46,11 +46,7 @@ describe('Login Page', () => {
   });
 
   it('shows modal when only username is empty', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.change(screen.getByPlaceholderText('请输入密码'), { target: { value: 'password123' } });
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
@@ -65,11 +61,7 @@ describe('Login Page', () => {
   });
 
   it('shows modal when only password is empty', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.change(screen.getByPlaceholderText('请输入用户名'), { target: { value: 'admin' } });
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
@@ -84,11 +76,7 @@ describe('Login Page', () => {
   });
 
   it('closes modal when close button is clicked', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
 
@@ -106,11 +94,7 @@ describe('Login Page', () => {
   });
 
   it('closes modal when "知道了" button is clicked', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
 
@@ -127,11 +111,7 @@ describe('Login Page', () => {
   });
 
   it('shows modal with error message when credentials are invalid', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.change(screen.getByPlaceholderText('请输入用户名'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('请输入密码'), { target: { value: 'wrongpassword' } });
@@ -145,27 +125,19 @@ describe('Login Page', () => {
   });
 
   it('navigates to dashboard when credentials are valid', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     fireEvent.change(screen.getByPlaceholderText('请输入用户名'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('请输入密码'), { target: { value: 'admin123' } });
     fireEvent.click(screen.getByRole('button', { name: /登 录/i }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
     });
   });
 
   it('toggles password visibility', () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     const passwordInput = screen.getByPlaceholderText('请输入密码');
     const buttons = screen.getAllByRole('button');
@@ -179,11 +151,7 @@ describe('Login Page', () => {
   });
 
   it('removes error state when user starts typing', async () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    render(<Login />, { wrapper });
 
     const loginButton = screen.getByRole('button', { name: /登 录/i });
     fireEvent.click(loginButton);
