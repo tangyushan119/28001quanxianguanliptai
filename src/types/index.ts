@@ -77,3 +77,75 @@ export interface EmployeeFormData {
   hireDate: string;
   status: 'active' | 'on-leave' | 'resigned';
 }
+
+export interface Equipment {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  model: string;
+  manufacturer: string;
+  purchaseDate: string;
+  price: number;
+  location: string;
+  departmentId: string;
+  responsiblePerson: string;
+  status: 'in-use' | 'idle' | 'maintenance' | 'scrapped';
+  warrantyEndDate?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Supplies {
+  id: string;
+  name: string;
+  code: string;
+  category: string;
+  unit: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  location: string;
+  departmentId: string;
+  supplier?: string;
+  purchaseDate: string;
+  expirationDate?: string;
+  status: 'in-stock' | 'in-use' | 'low-stock' | 'depleted';
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EquipmentFormData {
+  name: string;
+  code: string;
+  type: string;
+  model: string;
+  manufacturer: string;
+  purchaseDate: string;
+  price: string;
+  location: string;
+  departmentId: string;
+  responsiblePerson: string;
+  status: 'in-use' | 'idle' | 'maintenance' | 'scrapped';
+  warrantyEndDate?: string;
+  description?: string;
+}
+
+export interface SuppliesFormData {
+  name: string;
+  code: string;
+  category: string;
+  unit: string;
+  quantity: string;
+  unitPrice: string;
+  totalPrice: string;
+  location: string;
+  departmentId: string;
+  supplier?: string;
+  purchaseDate: string;
+  expirationDate?: string;
+  status: 'in-stock' | 'in-use' | 'low-stock' | 'depleted';
+  description?: string;
+}
