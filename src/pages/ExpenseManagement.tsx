@@ -401,6 +401,7 @@ export default function ExpenseManagement() {
           </div>
         )}
       </Modal>
+      </div>
     </div>
   );
 }
