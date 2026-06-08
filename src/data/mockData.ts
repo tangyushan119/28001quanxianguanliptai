@@ -1,4 +1,4 @@
-import { Organization, Department, Employee, Equipment, Supplies } from '../types';
+import { Organization, Department, Employee, Equipment, Supplies, DutyRecord, FieldRecord } from '../types';
 
 export const mockOrganizations: Organization[] = [
   { id: '1', name: '县政府办公室', code: 'XZFB', address: '县政府大楼1层', phone: '0123-4567890', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
@@ -39,4 +39,18 @@ export const mockSupplies: Supplies[] = [
   { id: '2', name: '签字笔', code: 'SP002', category: 'stationery', brandSeries: '晨光Q7', assetNumber: 'AST-SP-002', unit: '盒', quantity: 200, unitPrice: 15, totalPrice: 3000, location: '仓库A区', departmentId: '2', supplier: '晨光文具', purchaseDate: '2024-02-10', shelfLife: 36, status: 'in-stock', createdAt: '2024-02-10', updatedAt: '2024-02-10' },
   { id: '3', name: '办公椅', code: 'SP003', category: 'furniture', brandSeries: '人体工学系列', assetNumber: 'AST-SP-003', unit: '把', quantity: 20, unitPrice: 350, totalPrice: 7000, location: '仓库B区', departmentId: '5', purchaseDate: '2023-12-15', status: 'in-use', createdAt: '2023-12-15', updatedAt: '2023-12-15' },
   { id: '4', name: '消毒液', code: 'SP004', category: 'cleaning', brandSeries: '84消毒液', assetNumber: 'AST-SP-004', unit: '瓶', quantity: 10, unitPrice: 25, totalPrice: 250, location: '仓库C区', departmentId: '8', purchaseDate: '2024-03-01', expirationDate: '2025-03-01', shelfLife: 12, status: 'low-stock', createdAt: '2024-03-01', updatedAt: '2024-03-01' },
+];
+
+export const mockDutyRecords: DutyRecord[] = [
+  { id: '1', employeeId: 'EMP001', employeeName: '张三', departmentId: '1', dutyDate: '2024-01-15', dutyType: 'morning', startTime: '08:00', endTime: '12:00', location: '县政府大楼值班室', dutyContent: '日常值班，处理来电来访', remarks: '无特殊事项', status: 'completed', createdAt: '2024-01-15', updatedAt: '2024-01-15' },
+  { id: '2', employeeId: 'EMP002', employeeName: '李四', departmentId: '2', dutyDate: '2024-01-15', dutyType: 'afternoon', startTime: '14:00', endTime: '18:00', location: '行政服务中心值班室', dutyContent: '窗口值班，协助群众办理业务', status: 'completed', createdAt: '2024-01-15', updatedAt: '2024-01-15' },
+  { id: '3', employeeId: 'EMP003', employeeName: '王五', departmentId: '5', dutyDate: '2024-01-16', dutyType: 'evening', startTime: '18:00', endTime: '22:00', location: '发展和改革局值班室', dutyContent: '夜间值班，处理紧急事务', remarks: '接到上级通知', status: 'completed', createdAt: '2024-01-16', updatedAt: '2024-01-16' },
+  { id: '4', employeeId: 'EMP004', employeeName: '赵六', departmentId: '8', dutyDate: '2024-01-17', dutyType: 'night', startTime: '22:00', endTime: '08:00', location: '财政大厦值班室', dutyContent: '夜班值班，保障财务系统安全', status: 'pending', createdAt: '2024-01-17', updatedAt: '2024-01-17' },
+];
+
+export const mockFieldRecords: FieldRecord[] = [
+  { id: '1', employeeId: 'EMP001', employeeName: '张三', departmentId: '1', fieldDate: '2024-01-10', startTime: '09:00', endTime: '12:30', destination: '市政务服务中心', purpose: '参加政务信息化培训', transportation: 'car', expenses: 150, status: 'completed', createdAt: '2024-01-10', updatedAt: '2024-01-10' },
+  { id: '2', employeeId: 'EMP002', employeeName: '李四', departmentId: '2', fieldDate: '2024-01-12', startTime: '08:30', endTime: '17:00', destination: '工业园区', purpose: '调研企业复工情况', transportation: 'bus', expenses: 35, status: 'completed', createdAt: '2024-01-12', updatedAt: '2024-01-12' },
+  { id: '3', employeeId: 'EMP003', employeeName: '王五', departmentId: '5', fieldDate: '2024-01-18', startTime: '07:00', endTime: '18:00', destination: '邻县发改委', purpose: '学习考察项目审批经验', transportation: 'car', expenses: 320, status: 'pending', createdAt: '2024-01-18', updatedAt: '2024-01-18' },
+  { id: '4', employeeId: 'EMP004', employeeName: '赵六', departmentId: '8', fieldDate: '2024-01-20', startTime: '09:00', endTime: '16:00', destination: '乡镇财政所', purpose: '检查财务报表', transportation: 'car', status: 'pending', createdAt: '2024-01-20', updatedAt: '2024-01-20' },
 ];

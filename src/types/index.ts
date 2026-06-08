@@ -161,3 +161,65 @@ export interface SuppliesFormData {
   status: 'in-stock' | 'in-use' | 'low-stock' | 'depleted';
   description?: string;
 }
+
+export interface DutyRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  dutyDate: string;
+  dutyType: 'morning' | 'afternoon' | 'evening' | 'night';
+  startTime: string;
+  endTime: string;
+  location: string;
+  dutyContent: string;
+  remarks?: string;
+  status: 'completed' | 'pending' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DutyRecordFormData {
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  dutyDate: string;
+  dutyType: 'morning' | 'afternoon' | 'evening' | 'night';
+  startTime: string;
+  endTime: string;
+  location: string;
+  dutyContent: string;
+  remarks?: string;
+  status: 'completed' | 'pending' | 'cancelled';
+}
+
+export interface FieldRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  fieldDate: string;
+  startTime: string;
+  endTime: string;
+  destination: string;
+  purpose: string;
+  transportation: 'walk' | 'bus' | 'car' | 'train' | 'plane' | 'other';
+  expenses?: number;
+  status: 'completed' | 'pending' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FieldRecordFormData {
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  fieldDate: string;
+  startTime: string;
+  endTime: string;
+  destination: string;
+  purpose: string;
+  transportation: 'walk' | 'bus' | 'car' | 'train' | 'plane' | 'other';
+  expenses?: string;
+  status: 'completed' | 'pending' | 'cancelled';
+}

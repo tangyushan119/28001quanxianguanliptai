@@ -1,5 +1,5 @@
-import { Organization, Department, Employee, Equipment, Supplies } from '../types';
-import { mockOrganizations, mockDepartments, mockEmployees, mockEquipments, mockSupplies } from '../data/mockData';
+import { Organization, Department, Employee, Equipment, Supplies, DutyRecord, FieldRecord } from '../types';
+import { mockOrganizations, mockDepartments, mockEmployees, mockEquipments, mockSupplies, mockDutyRecords, mockFieldRecords } from '../data/mockData';
 
 type DataStore = {
   organizations: Organization[];
@@ -7,9 +7,9 @@ type DataStore = {
   employees: Employee[];
   equipments: Equipment[];
   supplies: Supplies[];
+  dutyRecords: DutyRecord[];
+  fieldRecords: FieldRecord[];
 };
-
-type Listener = () => void;
 
 let store: DataStore = {
   organizations: [...mockOrganizations],
@@ -17,6 +17,8 @@ let store: DataStore = {
   employees: [...mockEmployees],
   equipments: [...mockEquipments],
   supplies: [...mockSupplies],
+  dutyRecords: [...mockDutyRecords],
+  fieldRecords: [...mockFieldRecords],
 };
 
 const listeners = new Set<Listener>();
@@ -172,4 +174,58 @@ export const checkOrgCodeExists = (code: string, excludeId?: string): boolean =>
 
 export const checkDeptCodeExists = (code: string, excludeId?: string): boolean => {
   return store.departments.some((dept) => dept.code === code && dept.id !== excludeId);
+};
+
+export const getDutyRecords = (): DutyRecord[] => store.dutyRecords;
+
+export const getFieldRecords = (): FieldRecord[] => store.fieldRecords;
+
+export const addDutyRecord = (record: Omit<DutyRecord, 'id' | 'createdAt' | 'updatedAt'>): DutyRecord => {
+  const now = new Date().toISOString().split('T')[0];
+  const newRecord: DutyRecord = {
+    ...record,
+    id: Date.now().toString(),
+    createdAt: now,
+    updatedAt: now,
+  };
+  store.dutyRecords = [...store.dutyRecords, newRecord];
+  notify();
+  return newRecord;
+};
+
+export const updateDutyRecord = (id: string, updates: Partial<DutyRecord>): void => {
+  store.dutyRecords = store.dutyRecords.map((record) =>
+    record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString().split('T')[0] } : record
+  );
+  notify();
+};
+
+export const deleteDutyRecord = (id: string): void => {
+  store.dutyRecords = store.dutyRecords.filter((record) => record.id !== id);
+  notify();
+};
+
+export const addFieldRecord = (record: Omit<FieldRecord, 'id' | 'createdAt' | 'updatedAt'>): FieldRecord => {
+  const now = new Date().toISOString().split('T')[0];
+  const newRecord: FieldRecord = {
+    ...record,
+    id: Date.now().toString(),
+    createdAt: now,
+    updatedAt: now,
+  };
+  store.fieldRecords = [...store.fieldRecords, newRecord];
+  notify();
+  return newRecord;
+};
+
+export const updateFieldRecord = (id: string, updates: Partial<FieldRecord>): void => {
+  store.fieldRecords = store.fieldRecords.map((record) =>
+    record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString().split('T')[0] } : record
+  );
+  notify();
+};
+
+export const deleteFieldRecord = (id: string): void => {
+  store.fieldRecords = store.fieldRecords.filter((record) => record.id !== id);
+  notify();
 };

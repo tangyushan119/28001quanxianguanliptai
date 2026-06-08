@@ -5,6 +5,7 @@ import DataManagement from './pages/DataManagement';
 import OrganizationManagement from './pages/OrganizationManagement';
 import EmployeeManagement from './pages/EmployeeManagement';
 import AssetManagement from './pages/AssetManagement';
+import DutyRecordManagement from './pages/DutyRecordManagement';
 import Layout from './components/Layout';
 import { useAuth } from './contexts/AuthContext';
 
@@ -93,6 +94,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AssetManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/duty-record"
+          element={
+            <ProtectedRoute>
+              <DutyRecordManagement />
             </ProtectedRoute>
           }
         />
