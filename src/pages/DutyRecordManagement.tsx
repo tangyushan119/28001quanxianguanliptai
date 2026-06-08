@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Clock, MapPin, Calendar, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { DutyRecord, DutyRecordFormData, FieldRecord, FieldRecordFormData, Department, Employee } from '../types';
 import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select } from '../components';
-import { getDutyRecords, getFieldRecords, getDepartments, getEmployees, addDutyRecord, updateDutyRecord, deleteDutyRecord, addFieldRecord, updateFieldRecord, deleteFieldRecord } from '../store/dataStore';
+import { getDutyRecords, getFieldRecords, getDepartments, getEmployees, addDutyRecord, updateDutyRecord, deleteDutyRecord, addFieldRecord, updateFieldRecord, deleteFieldRecord, checkDutyRecordExists, checkFieldRecordExists } from '../store/dataStore';
 
 const dutyTypeConfig = {
   morning: { label: '早班', color: 'bg-blue-100 text-blue-700' },
@@ -67,7 +67,24 @@ export default function DutyRecordManagement() {
     return dept?.name || '-';
   };
 
+  const [dutyError, setDutyError] = useState('');
+  const [fieldError, setFieldError] = useState('');
+
   const handleDutySubmit = (data: DutyRecordFormData) => {
+    setDutyError('');
+    
+    const exists = checkDutyRecordExists(
+      data.employeeId,
+      data.dutyDate,
+      data.dutyType,
+      editingDutyRecord?.id
+    );
+    
+    if (exists) {
+      setDutyError(`该人员在${data.dutyDate}的${dutyTypeConfig[data.dutyType].label}已有值班记录，无法重复提交`);
+      return;
+    }
+    
     if (editingDutyRecord) {
       updateDutyRecord(editingDutyRecord.id, data);
       setDutyRecords(dutyRecords.map((r) => (r.id === editingDutyRecord.id ? { ...r, ...data } : r)));
@@ -79,10 +96,25 @@ export default function DutyRecordManagement() {
   };
 
   const handleFieldSubmit = (data: FieldRecordFormData) => {
+    setFieldError('');
+    
     const recordData = {
       ...data,
       expenses: data.expenses ? parseFloat(data.expenses) : undefined,
     };
+    
+    const exists = checkFieldRecordExists(
+      data.employeeId,
+      data.fieldDate,
+      data.startTime,
+      data.endTime,
+      editingFieldRecord?.id
+    );
+    
+    if (exists) {
+      setFieldError(`该人员在${data.fieldDate}的${data.startTime}-${data.endTime}时间段已有外勤记录，无法重复提交`);
+      return;
+    }
     
     if (editingFieldRecord) {
       updateFieldRecord(editingFieldRecord.id, recordData);
@@ -376,13 +408,20 @@ export default function DutyRecordManagement() {
         title={editingDutyRecord ? '编辑值班记录' : '值班记录录入'}
         size="lg"
       >
-        <DutyRecordForm
-          employees={employees}
-          departments={departments}
-          initialData={editingDutyRecord || undefined}
-          onSubmit={handleDutySubmit}
-          onCancel={closeDutyForm}
-        />
+        <div>
+          {dutyError && (
+            <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg">
+              <p className="text-error-600 text-sm">{dutyError}</p>
+            </div>
+          )}
+          <DutyRecordForm
+            employees={employees}
+            departments={departments}
+            initialData={editingDutyRecord || undefined}
+            onSubmit={handleDutySubmit}
+            onCancel={closeDutyForm}
+          />
+        </div>
       </Modal>
 
       <Modal
@@ -391,13 +430,20 @@ export default function DutyRecordManagement() {
         title={editingFieldRecord ? '编辑外勤记录' : '外勤信息录入'}
         size="lg"
       >
-        <FieldRecordForm
-          employees={employees}
-          departments={departments}
-          initialData={editingFieldRecord || undefined}
-          onSubmit={handleFieldSubmit}
-          onCancel={closeFieldForm}
-        />
+        <div>
+          {fieldError && (
+            <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg">
+              <p className="text-error-600 text-sm">{fieldError}</p>
+            </div>
+          )}
+          <FieldRecordForm
+            employees={employees}
+            departments={departments}
+            initialData={editingFieldRecord || undefined}
+            onSubmit={handleFieldSubmit}
+            onCancel={closeFieldForm}
+          />
+        </div>
       </Modal>
     </div>
   );

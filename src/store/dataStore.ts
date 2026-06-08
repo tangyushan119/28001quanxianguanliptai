@@ -178,6 +178,26 @@ export const checkDeptCodeExists = (code: string, excludeId?: string): boolean =
 
 export const getDutyRecords = (): DutyRecord[] => store.dutyRecords;
 
+export const checkDutyRecordExists = (employeeId: string, dutyDate: string, dutyType: string, excludeId?: string): boolean => {
+  return store.dutyRecords.some(
+    (record) =>
+      record.employeeId === employeeId &&
+      record.dutyDate === dutyDate &&
+      record.dutyType === dutyType &&
+      record.id !== excludeId
+  );
+};
+
+export const checkFieldRecordExists = (employeeId: string, fieldDate: string, startTime: string, endTime: string, excludeId?: string): boolean => {
+  return store.fieldRecords.some(
+    (record) =>
+      record.employeeId === employeeId &&
+      record.fieldDate === fieldDate &&
+      ((record.startTime <= endTime && record.endTime >= startTime)) &&
+      record.id !== excludeId
+  );
+};
+
 export const getFieldRecords = (): FieldRecord[] => store.fieldRecords;
 
 export const addDutyRecord = (record: Omit<DutyRecord, 'id' | 'createdAt' | 'updatedAt'>): DutyRecord => {
