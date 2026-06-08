@@ -13,7 +13,7 @@ export type { DatePickerSize } from './DatePicker';
 export { default as DateRangePicker } from './DateRangePicker';
 export type { DateRangePickerSize, DateRange } from './DateRangePicker';
 
-export { default as Card, CardHeader, CardTitle, CardBody } from './Card';
+export { default as Card, CardHeader, CardTitle, CardSubtitle, CardBody } from './Card';
 
 export { default as Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from './Table';
 

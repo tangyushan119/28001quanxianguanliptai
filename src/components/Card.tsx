@@ -5,6 +5,7 @@ interface CardProps {
   className?: string;
   hoverable?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  shadow?: 'none' | 'sm' | 'md' | 'lg';
 }
 
 export default function Card({
@@ -12,20 +13,28 @@ export default function Card({
   className = '',
   hoverable = false,
   padding = 'lg',
+  shadow = 'md',
 }: CardProps) {
   const baseStyles = 'bg-white rounded-xl border border-gray-100 overflow-hidden';
   
-  const hoverStyles = hoverable ? 'hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200' : '';
+  const hoverStyles = hoverable ? 'hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300' : '';
   
   const paddingStyles = {
     none: '',
     sm: 'p-4',
     md: 'p-6',
-    lg: 'p-8',
+    lg: 'p-6',
+  };
+
+  const shadowStyles = {
+    none: 'shadow-none',
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
   };
 
   return (
-    <div className={`${baseStyles} ${hoverStyles} ${paddingStyles[padding]} ${className}`}>
+    <div className={`${baseStyles} ${hoverStyles} ${paddingStyles[padding]} ${shadowStyles[shadow]} ${className}`}>
       {children}
     </div>
   );
@@ -38,7 +47,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
   return (
-    <div className={`pb-4 mb-4 border-b border-gray-100 ${className}`}>
+    <div className={`pb-4 mb-4 border-b border-gray-100 flex items-center justify-between ${className}`}>
       {children}
     </div>
   );
@@ -51,9 +60,22 @@ interface CardTitleProps {
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
   return (
-    <h2 className={`text-xl font-bold text-gray-800 ${className}`}>
+    <h2 className={`text-lg font-semibold text-gray-800 leading-tight ${className}`}>
       {children}
     </h2>
+  );
+}
+
+interface CardSubtitleProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function CardSubtitle({ children, className = '' }: CardSubtitleProps) {
+  return (
+    <p className={`text-sm text-gray-500 mt-1 ${className}`}>
+      {children}
+    </p>
   );
 }
 
@@ -64,7 +86,7 @@ interface CardBodyProps {
 
 export function CardBody({ children, className = '' }: CardBodyProps) {
   return (
-    <div className={className}>
+    <div className={`text-sm text-gray-700 leading-relaxed ${className}`}>
       {children}
     </div>
   );

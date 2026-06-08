@@ -145,165 +145,176 @@ export default function ExpenseManagement() {
   const employeeOptions = employees.map((emp) => ({ id: emp.id, name: emp.name }));
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">经费收支管理</h1>
-          <p className="text-gray-500 mt-1">管理全县机关事业单位经费收支记录</p>
-        </div>
-        <Button onClick={openAddForm} leftIcon={<Plus className="w-5 h-5" />}>
-          新增记录
-        </Button>
-      </div>
-
-      <div className="mb-6 space-y-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="搜索员工姓名、金额或描述..."
-            className="pl-10"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">筛选条件：</span>
+    <div className="p-6 lg:p-8 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">经费收支管理</h1>
+            <p className="text-sm lg:text-base text-gray-500 mt-2 font-medium">管理全县机关事业单位经费收支记录</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[140px]">
-              <span className="text-sm text-gray-500">类型：</span>
-              <Select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="min-w-[100px]"
-              >
-                <option value="">全部</option>
-                <option value="income">收入</option>
-                <option value="expense">支出</option>
-              </Select>
+          <Button onClick={openAddForm} leftIcon={<Plus className="w-5 h-5" />} size="lg">
+            新增记录
+          </Button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+            <div className="relative flex-1 max-w-lg">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="搜索员工姓名、金额或描述..."
+                className="pl-12 h-11"
+              />
             </div>
-            <div className="flex items-center gap-2 min-w-[140px]">
-              <span className="text-sm text-gray-500">状态：</span>
-              <Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="min-w-[100px]"
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-600">类型：</span>
+                <Select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="min-w-[110px] h-11"
+                >
+                  <option value="">全部</option>
+                  <option value="income">收入</option>
+                  <option value="expense">支出</option>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-600">状态：</span>
+                <Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="min-w-[110px] h-11"
+                >
+                  <option value="">全部</option>
+                  <option value="pending">待审核</option>
+                  <option value="approved">已通过</option>
+                  <option value="rejected">已驳回</option>
+                </Select>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setStatusFilter('');
+                  setTypeFilter('');
+                  setSearchTerm('');
+                }}
+                className="h-11 px-4"
               >
-                <option value="">全部</option>
-                <option value="pending">待审核</option>
-                <option value="approved">已通过</option>
-                <option value="rejected">已驳回</option>
-              </Select>
+                重置筛选
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setStatusFilter('');
-                setTypeFilter('');
-                setSearchTerm('');
-              }}
-            >
-              重置筛选
-            </Button>
           </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>经费收支列表</CardTitle>
-        </CardHeader>
-        <CardBody>
-          <Table>
-            <thead>
-              <tr>
-                <th>类型</th>
-                <th>类别</th>
-                <th>金额</th>
-                <th>员工</th>
-                <th>部门</th>
-                <th>日期</th>
-                <th>支付方式</th>
-                <th>状态</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredExpenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${expenseTypeConfig[expense.expenseType].color}`}>
-                      {expenseTypeConfig[expense.expenseType].label}
-                    </span>
-                  </td>
-                  <td>{categoryConfig[expense.category] || expense.category}</td>
-                  <td className={expense.expenseType === 'income' ? 'text-success-600' : 'text-error-600'}>
-                    {expense.expenseType === 'income' ? '+' : '-'}{expense.amount.toLocaleString()}
-                  </td>
-                  <td>{expense.employeeName}</td>
-                  <td>{getDepartmentName(expense.departmentId)}</td>
-                  <td>{new Date(expense.date).toLocaleDateString('zh-CN')}</td>
-                  <td>{paymentMethodConfig[expense.paymentMethod]}</td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        expense.status === 'pending' ? 'bg-warning-100 text-warning-700' :
-                        expense.status === 'approved' ? 'bg-success-100 text-success-700' :
-                        'bg-error-100 text-error-700'
-                      }`}>
-                        {statusConfig[expense.status].label}
-                      </span>
-                      {expense.status !== 'approved' && (
-                        <Select
-                          size="sm"
-                          value={expense.status}
-                          onChange={(e) => handleStatusChange(expense.id, e.target.value as 'pending' | 'approved' | 'rejected')}
-                          className="min-w-[80px]"
-                        >
-                          <option value="pending">待审核</option>
-                          <option value="approved">通过</option>
-                          <option value="rejected">驳回</option>
-                        </Select>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        leftIcon={<Eye className="w-4 h-4" />}
-                        onClick={() => handleView(expense)}
-                      >
-                        查看
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        leftIcon={<Edit2 className="w-4 h-4" />}
-                        onClick={() => handleEdit(expense)}
-                      >
-                        编辑
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        leftIcon={<Trash2 className="w-4 h-4" />}
-                        onClick={() => handleDelete(expense.id)}
-                      >
-                        删除
-                      </Button>
-                    </div>
-                  </td>
+        <Card shadow="md">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800">经费收支列表</CardTitle>
+            <span className="text-sm text-gray-500">{filteredExpenses.length} 条记录</span>
+          </CardHeader>
+          <CardBody className="p-0">
+            <Table>
+              <thead>
+                <tr>
+                  <th className="text-left">类型</th>
+                  <th className="text-left">类别</th>
+                  <th className="text-right">金额</th>
+                  <th className="text-left">员工</th>
+                  <th className="text-left">部门</th>
+                  <th className="text-left">日期</th>
+                  <th className="text-left">支付方式</th>
+                  <th className="text-left">状态</th>
+                  <th className="text-left">操作</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
-        </CardBody>
-      </Card>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredExpenses.map((expense) => (
+                  <tr key={expense.id} className="hover:bg-primary-50/40 transition-colors duration-150">
+                    <td>
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
+                        expense.expenseType === 'income' 
+                          ? 'bg-success-50 text-success-700' 
+                          : 'bg-error-50 text-error-700'
+                      }`}>
+                        {expenseTypeConfig[expense.expenseType].label}
+                      </span>
+                    </td>
+                    <td className="font-medium text-gray-800">{categoryConfig[expense.category] || expense.category}</td>
+                    <td className={`text-right font-semibold ${
+                      expense.expenseType === 'income' ? 'text-success-600' : 'text-error-600'
+                    }`}>
+                      {expense.expenseType === 'income' ? '+' : '-'}{expense.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="text-gray-700">{expense.employeeName}</td>
+                    <td className="text-gray-600 text-sm">{getDepartmentName(expense.departmentId)}</td>
+                    <td className="text-gray-600">{new Date(expense.date).toLocaleDateString('zh-CN')}</td>
+                    <td className="text-gray-600">{paymentMethodConfig[expense.paymentMethod]}</td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
+                          expense.status === 'pending' ? 'bg-warning-100 text-warning-700' :
+                          expense.status === 'approved' ? 'bg-success-100 text-success-700' :
+                          'bg-error-100 text-error-700'
+                        }`}>
+                          {statusConfig[expense.status].label}
+                        </span>
+                        {expense.status !== 'approved' && (
+                          <Select
+                            size="sm"
+                            value={expense.status}
+                            onChange={(e) => handleStatusChange(expense.id, e.target.value as 'pending' | 'approved' | 'rejected')}
+                            className="min-w-[80px]"
+                          >
+                            <option value="pending">待审核</option>
+                            <option value="approved">通过</option>
+                            <option value="rejected">驳回</option>
+                          </Select>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<Eye className="w-4 h-4" />}
+                          onClick={() => handleView(expense)}
+                        >
+                          查看
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<Edit2 className="w-4 h-4" />}
+                          onClick={() => handleEdit(expense)}
+                        >
+                          编辑
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          leftIcon={<Trash2 className="w-4 h-4" />}
+                          onClick={() => handleDelete(expense.id)}
+                        >
+                          删除
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            {filteredExpenses.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <p className="text-sm">暂无数据</p>
+              </div>
+            )}
+          </CardBody>
+        </Card>
 
       <Modal
         isOpen={showForm}

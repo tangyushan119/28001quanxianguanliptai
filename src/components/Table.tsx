@@ -13,10 +13,10 @@ export default function Table({
   striped = false,
   hoverable = false,
 }: TableProps) {
-  const baseStyles = 'w-full border-collapse';
+  const baseStyles = 'w-full border-collapse text-sm';
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto scrollbar-thin">
       <table className={baseStyles}>
         {children}
       </table>
@@ -31,7 +31,7 @@ interface TableHeadProps {
 
 export function TableHead({ children, className = '' }: TableHeadProps) {
   return (
-    <thead className={`bg-gray-50 ${className}`}>
+    <thead className={`bg-gradient-to-r from-primary-50 to-accent-50 ${className}`}>
       {children}
     </thead>
   );
@@ -53,11 +53,11 @@ export function TableBody({
   const baseStyles = 'divide-y divide-gray-100';
   
   const rowStyles = striped 
-    ? 'even:bg-gray-50' 
+    ? 'even:bg-gray-50/60' 
     : '';
     
   const hoverStyles = hoverable 
-    ? 'hover:bg-gray-50' 
+    ? 'hover:bg-primary-50/50' 
     : '';
 
   return (
@@ -74,7 +74,7 @@ interface TableRowProps {
 }
 
 export function TableRow({ children, className = '', hoverable = false }: TableRowProps) {
-  const hoverStyles = hoverable ? 'hover:bg-gray-50 transition-colors' : '';
+  const hoverStyles = hoverable ? 'hover:bg-primary-50/60 transition-colors duration-150' : '';
   
   return (
     <tr className={`${hoverStyles} ${className}`}>
@@ -101,7 +101,7 @@ export function TableHeaderCell({
   };
 
   return (
-    <th className={`px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider ${alignStyles[align]} ${className}`}>
+    <th className={`px-6 py-3.5 text-xs font-semibold text-primary-700 uppercase tracking-wider ${alignStyles[align]} ${className} border-b border-primary-100`}>
       {children}
     </th>
   );
@@ -129,7 +129,7 @@ export function TableCell({
   const nowrapStyles = nowrap ? 'whitespace-nowrap' : '';
 
   return (
-    <td className={`px-6 py-4 text-sm ${alignStyles[align]} ${nowrapStyles} ${className}`}>
+    <td className={`px-6 py-3.5 text-sm text-gray-700 leading-relaxed ${alignStyles[align]} ${nowrapStyles} ${className}`}>
       {children}
     </td>
   );

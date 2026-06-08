@@ -131,169 +131,176 @@ export default function ExpenseForm({
     : expenseCategoryOptions;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardBody>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                收支类型 <span className="text-error-500">*</span>
-              </label>
-              <Select
-                value={formData.expenseType}
-                onChange={(e) => {
-                  handleChange('expenseType', (e.target as HTMLSelectElement).value);
-                  setFormData((prev) => ({ ...prev, category: '' }));
-                }}
-              >
-                {expenseTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                类别 <span className="text-error-500">*</span>
-              </label>
-              <Select
-                value={formData.category}
-                onChange={(e) => handleChange('category', (e.target as HTMLSelectElement).value)}
-                status={errors.category ? 'error' : 'default'}
-              >
-                <option value="">请选择类别</option>
-                {currentCategoryOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                金额 <span className="text-error-500">*</span>
-              </label>
-              <Input
-                type="number"
-                value={formData.amount}
-                onChange={(e) => handleChange('amount', e.target.value)}
-                placeholder="请输入金额"
-                status={errors.amount ? 'error' : 'default'}
-                errorMessage={errors.amount}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                日期 <span className="text-error-500">*</span>
-              </label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleChange('date', e.target.value)}
-                status={errors.date ? 'error' : 'default'}
-                errorMessage={errors.date}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                员工 <span className="text-error-500">*</span>
-              </label>
-              <Select
-                value={formData.employeeId}
-                onChange={(e) => handleChange('employeeId', (e.target as HTMLSelectElement).value)}
-                status={errors.employeeId ? 'error' : 'default'}
-              >
-                <option value="">请选择员工</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                部门 <span className="text-error-500">*</span>
-              </label>
-              <Select
-                value={formData.departmentId}
-                onChange={(e) => handleChange('departmentId', (e.target as HTMLSelectElement).value)}
-                status={errors.departmentId ? 'error' : 'default'}
-              >
-                <option value="">请选择部门</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                支付方式
-              </label>
-              <Select
-                value={formData.paymentMethod}
-                onChange={(e) => handleChange('paymentMethod', (e.target as HTMLSelectElement).value)}
-              >
-                {paymentMethodOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                状态
-              </label>
-              <Select
-                value={formData.status}
-                onChange={(e) => handleChange('status', (e.target as HTMLSelectElement).value)}
-              >
-                {statusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
-                备注说明
-              </label>
-              <Input
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="请输入备注说明"
-              />
-            </div>
+    <div className="space-y-0">
+      <div className="pb-4 mb-5 border-b border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-800 leading-tight">{title}</h3>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              收支类型 <span className="text-error-500">*</span>
+            </label>
+            <Select
+              value={formData.expenseType}
+              onChange={(e) => {
+                handleChange('expenseType', (e.target as HTMLSelectElement).value);
+                setFormData((prev) => ({ ...prev, category: '' }));
+              }}
+              className="h-11"
+            >
+              {expenseTypeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            {onCancel && (
-              <Button variant="outline" onClick={onCancel}>
-                取消
-              </Button>
-            )}
-            <Button type="submit">
-              {initialData ? '保存修改' : '提交'}
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              类别 <span className="text-error-500">*</span>
+            </label>
+            <Select
+              value={formData.category}
+              onChange={(e) => handleChange('category', (e.target as HTMLSelectElement).value)}
+              status={errors.category ? 'error' : 'default'}
+              className="h-11"
+            >
+              <option value="">请选择类别</option>
+              {currentCategoryOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              金额 <span className="text-error-500">*</span>
+            </label>
+            <Input
+              type="number"
+              value={formData.amount}
+              onChange={(e) => handleChange('amount', e.target.value)}
+              placeholder="请输入金额"
+              status={errors.amount ? 'error' : 'default'}
+              errorMessage={errors.amount}
+              className="h-11"
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              日期 <span className="text-error-500">*</span>
+            </label>
+            <Input
+              type="date"
+              value={formData.date}
+              onChange={(e) => handleChange('date', e.target.value)}
+              status={errors.date ? 'error' : 'default'}
+              errorMessage={errors.date}
+              className="h-11"
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              员工 <span className="text-error-500">*</span>
+            </label>
+            <Select
+              value={formData.employeeId}
+              onChange={(e) => handleChange('employeeId', (e.target as HTMLSelectElement).value)}
+              status={errors.employeeId ? 'error' : 'default'}
+              className="h-11"
+            >
+              <option value="">请选择员工</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              部门 <span className="text-error-500">*</span>
+            </label>
+            <Select
+              value={formData.departmentId}
+              onChange={(e) => handleChange('departmentId', (e.target as HTMLSelectElement).value)}
+              status={errors.departmentId ? 'error' : 'default'}
+              className="h-11"
+            >
+              <option value="">请选择部门</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              支付方式
+            </label>
+            <Select
+              value={formData.paymentMethod}
+              onChange={(e) => handleChange('paymentMethod', (e.target as HTMLSelectElement).value)}
+              className="h-11"
+            >
+              {paymentMethodOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              状态
+            </label>
+            <Select
+              value={formData.status}
+              onChange={(e) => handleChange('status', (e.target as HTMLSelectElement).value)}
+              className="h-11"
+            >
+              {statusOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="space-y-2.5 md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 tracking-wide">
+              备注说明
+            </label>
+            <Input
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="请输入备注说明"
+              className="h-11"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-5 border-t border-gray-100">
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel} className="h-11 px-6">
+              取消
             </Button>
-          </div>
-        </form>
-      </CardBody>
-    </Card>
+          )}
+          <Button type="submit" className="h-11 px-6">
+            {initialData ? '保存修改' : '提交'}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
