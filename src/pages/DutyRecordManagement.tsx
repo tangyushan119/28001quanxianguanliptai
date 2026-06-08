@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, Clock, MapPin, Calendar, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Search, Plus, Clock, MapPin, Calendar, CheckCircle, AlertCircle, XCircle, Filter, RefreshCw } from 'lucide-react';
 import { DutyRecord, DutyRecordFormData, FieldRecord, FieldRecordFormData, Department, Employee } from '../types';
-import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select } from '../components';
+import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select, DateRangePicker, DateRange } from '../components';
 import { getDutyRecords, getFieldRecords, getDepartments, getEmployees, addDutyRecord, updateDutyRecord, deleteDutyRecord, addFieldRecord, updateFieldRecord, deleteFieldRecord, checkDutyRecordExists, checkFieldRecordExists } from '../store/dataStore';
 
 const dutyTypeConfig = {
@@ -37,35 +37,54 @@ export default function DutyRecordManagement() {
   const [showFieldForm, setShowFieldForm] = useState(false);
   const [editingDutyRecord, setEditingDutyRecord] = useState<DutyRecord | null>(null);
   const [editingFieldRecord, setEditingFieldRecord] = useState<FieldRecord | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>({ startDate: '', endDate: '' });
+  const [statusFilter, setStatusFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredDutyRecords = useMemo(() => {
     return dutyRecords.filter((record) => {
-      if (!searchTerm.trim()) return true;
-      const term = searchTerm.toLowerCase();
-      return (
-        record.employeeName.toLowerCase().includes(term) ||
-        record.location.toLowerCase().includes(term) ||
-        record.dutyContent.toLowerCase().includes(term)
-      );
+      const matchesSearch = !searchTerm.trim() || 
+        record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.dutyContent.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesDateRange = (!dateRange.startDate || !dateRange.endDate) ||
+        (record.dutyDate >= dateRange.startDate && record.dutyDate <= dateRange.endDate);
+      
+      const matchesStatus = !statusFilter || record.status === statusFilter;
+      
+      return matchesSearch && matchesDateRange && matchesStatus;
     });
-  }, [dutyRecords, searchTerm]);
+  }, [dutyRecords, searchTerm, dateRange, statusFilter]);
 
   const filteredFieldRecords = useMemo(() => {
     return fieldRecords.filter((record) => {
-      if (!searchTerm.trim()) return true;
-      const term = searchTerm.toLowerCase();
-      return (
-        record.employeeName.toLowerCase().includes(term) ||
-        record.destination.toLowerCase().includes(term) ||
-        record.purpose.toLowerCase().includes(term)
-      );
+      const matchesSearch = !searchTerm.trim() || 
+        record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesDateRange = (!dateRange.startDate || !dateRange.endDate) ||
+        (record.fieldDate >= dateRange.startDate && record.fieldDate <= dateRange.endDate);
+      
+      const matchesStatus = !statusFilter || record.status === statusFilter;
+      
+      return matchesSearch && matchesDateRange && matchesStatus;
     });
-  }, [fieldRecords, searchTerm]);
+  }, [fieldRecords, searchTerm, dateRange, statusFilter]);
 
   const getDepartmentName = (id: string) => {
     const dept = departments.find((d) => d.id === id);
     return dept?.name || '-';
   };
+
+  const resetFilters = () => {
+    setDateRange({ startDate: '', endDate: '' });
+    setStatusFilter('');
+    setSearchTerm('');
+  };
+
+  const hasActiveFilters = dateRange.startDate || dateRange.endDate || statusFilter || searchTerm;
 
   const [dutyError, setDutyError] = useState('');
   const [fieldError, setFieldError] = useState('');
@@ -211,15 +230,67 @@ export default function DutyRecordManagement() {
         </div>
       </div>
 
-      <div className="relative max-w-md mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <Input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={`搜索${activeTab === 'duty' ? '值班人员、地点、内容' : '外勤人员、目的地、事由'}...`}
-          className="pl-10"
-        />
+      <div className="space-y-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={`搜索${activeTab === 'duty' ? '值班人员、地点、内容' : '外勤人员、目的地、事由'}...`}
+              className="pl-10"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            leftIcon={<Filter className="w-4 h-4" />}
+            className={showFilters ? 'bg-primary-50 border-primary-200 text-primary-600' : ''}
+          >
+            筛选
+            {hasActiveFilters && (
+              <span className="ml-1 px-1.5 py-0.5 bg-primary-500 text-white text-xs rounded-full">
+                !
+              </span>
+            )}
+          </Button>
+          {hasActiveFilters && (
+            <Button
+              variant="secondary"
+              onClick={resetFilters}
+              leftIcon={<RefreshCw className="w-4 h-4" />}
+              size="sm"
+            >
+              重置
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-600 mb-2">日期范围</label>
+              <DateRangePicker
+                value={dateRange}
+                onChange={setDateRange}
+                placeholder={{
+                  start: activeTab === 'duty' ? '值班开始日期' : '外勤开始日期',
+                  end: activeTab === 'duty' ? '值班结束日期' : '外勤结束日期',
+                }}
+              />
+            </div>
+            <div className="md:w-48">
+              <label className="block text-sm font-medium text-gray-600 mb-2">状态</label>
+              <Select value={statusFilter} onChange={(e) => setStatusFilter((e.target as HTMLSelectElement).value)}>
+                <option value="">全部状态</option>
+                <option value="pending">待执行</option>
+                <option value="completed">已完成</option>
+                <option value="cancelled">已取消</option>
+              </Select>
+            </div>
+          </div>
+        )}
       </div>
 
       {activeTab === 'duty' ? (
