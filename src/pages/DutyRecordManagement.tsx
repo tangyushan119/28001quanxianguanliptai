@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, X, Clock, MapPin, Calendar, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Plus, Clock, MapPin, Calendar, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { DutyRecord, DutyRecordFormData, FieldRecord, FieldRecordFormData, Department, Employee } from '../types';
 import { Button, Input, Card, CardHeader, CardTitle, CardBody, Modal, Select } from '../components';
 import { getDutyRecords, getFieldRecords, getDepartments, getEmployees, addDutyRecord, updateDutyRecord, deleteDutyRecord, addFieldRecord, updateFieldRecord, deleteFieldRecord } from '../store/dataStore';
@@ -67,17 +67,7 @@ export default function DutyRecordManagement() {
     return dept?.name || '-';
   };
 
-  const getEmployeeName = (id: string) => {
-    const emp = employees.find((e) => e.id === id);
-    return emp?.name || '-';
-  };
-
   const handleDutySubmit = (data: DutyRecordFormData) => {
-    const recordData = {
-      ...data,
-      expenses: data.expenses ? parseFloat(data.expenses) : undefined,
-    };
-    
     if (editingDutyRecord) {
       updateDutyRecord(editingDutyRecord.id, data);
       setDutyRecords(dutyRecords.map((r) => (r.id === editingDutyRecord.id ? { ...r, ...data } : r)));
@@ -251,10 +241,15 @@ export default function DutyRecordManagement() {
                         {record.dutyContent}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[record.status].color}`}>
-                          <statusConfig[record.status].icon className="w-3 h-3" />
-                          {statusConfig[record.status].label}
-                        </span>
+                        {(() => {
+                          const StatusIcon = statusConfig[record.status].icon;
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[record.status].color}`}>
+                              <StatusIcon className="w-3 h-3" />
+                              {statusConfig[record.status].label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
@@ -311,36 +306,38 @@ export default function DutyRecordManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredFieldRecords.map((record) => (
-                    <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-gray-800">{record.employeeName}</div>
-                        <div className="text-sm text-gray-500">{record.employeeId}</div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-700">{getDepartmentName(record.departmentId)}</td>
-                      <td className="py-3 px-4 text-gray-700">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          {record.fieldDate}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-700">
-                        {record.startTime} - {record.endTime}
-                      </td>
-                      <td className="py-3 px-4 text-gray-700">{record.destination}</td>
-                      <td className="py-3 px-4 text-gray-700 max-w-xs truncate" title={record.purpose}>
-                        {record.purpose}
-                      </td>
-                      <td className="py-3 px-4 text-gray-700">{transportationConfig[record.transportation]}</td>
-                      <td className="py-3 px-4 text-gray-700">
-                        {record.expenses ? `¥${record.expenses.toFixed(2)}` : '-'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[record.status].color}`}>
-                          <statusConfig[record.status].icon className="w-3 h-3" />
-                          {statusConfig[record.status].label}
-                        </span>
-                      </td>
+                  {filteredFieldRecords.map((record) => {
+                    const StatusIcon = statusConfig[record.status].icon;
+                    return (
+                      <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-gray-800">{record.employeeName}</div>
+                          <div className="text-sm text-gray-500">{record.employeeId}</div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">{getDepartmentName(record.departmentId)}</td>
+                        <td className="py-3 px-4 text-gray-700">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            {record.fieldDate}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {record.startTime} - {record.endTime}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">{record.destination}</td>
+                        <td className="py-3 px-4 text-gray-700 max-w-xs truncate" title={record.purpose}>
+                          {record.purpose}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">{transportationConfig[record.transportation]}</td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {record.expenses ? `¥${record.expenses.toFixed(2)}` : '-'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig[record.status].color}`}>
+                            <StatusIcon className="w-3 h-3" />
+                            {statusConfig[record.status].label}
+                          </span>
+                        </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <button
@@ -358,7 +355,8 @@ export default function DutyRecordManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
               {filteredFieldRecords.length === 0 && (
@@ -436,7 +434,7 @@ function DutyRecordForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useState(() => {
+  useEffect(() => {
     if (initialData) {
       setFormData({
         ...initialData,
@@ -673,7 +671,7 @@ function FieldRecordForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useState(() => {
+  useEffect(() => {
     if (initialData) {
       setFormData({
         ...initialData,
