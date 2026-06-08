@@ -1,4 +1,4 @@
-import { Organization, Department, Employee, Equipment, Supplies, DutyRecord, FieldRecord } from '../types';
+import { Organization, Department, Employee, Equipment, Supplies, DutyRecord, FieldRecord, ExpenseRecord } from '../types';
 
 export const mockOrganizations: Organization[] = [
   { id: '1', name: '县政府办公室', code: 'XZFB', address: '县政府大楼1层', phone: '0123-4567890', status: 'active', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
@@ -53,4 +53,12 @@ export const mockFieldRecords: FieldRecord[] = [
   { id: '2', employeeId: 'EMP002', employeeName: '李四', departmentId: '2', fieldDate: '2024-01-12', startTime: '08:30', endTime: '17:00', destination: '工业园区', purpose: '调研企业复工情况', transportation: 'bus', expenses: 35, status: 'completed', createdAt: '2024-01-12', updatedAt: '2024-01-12' },
   { id: '3', employeeId: 'EMP003', employeeName: '王五', departmentId: '5', fieldDate: '2024-01-18', startTime: '07:00', endTime: '18:00', destination: '邻县发改委', purpose: '学习考察项目审批经验', transportation: 'car', expenses: 320, status: 'pending', createdAt: '2024-01-18', updatedAt: '2024-01-18' },
   { id: '4', employeeId: 'EMP004', employeeName: '赵六', departmentId: '8', fieldDate: '2024-01-20', startTime: '09:00', endTime: '16:00', destination: '乡镇财政所', purpose: '检查财务报表', transportation: 'car', status: 'pending', createdAt: '2024-01-20', updatedAt: '2024-01-20' },
+];
+
+export const mockExpenseRecords: ExpenseRecord[] = [
+  { id: '1', employeeId: 'EMP001', employeeName: '张三', departmentId: '1', expenseType: 'expense', category: 'office_supplies', amount: 500, date: '2024-01-10', description: '购买办公文具', paymentMethod: 'card', status: 'approved', createdAt: '2024-01-10', updatedAt: '2024-01-10' },
+  { id: '2', employeeId: 'EMP002', employeeName: '李四', departmentId: '2', expenseType: 'expense', category: 'travel', amount: 350, date: '2024-01-12', description: '差旅费报销', paymentMethod: 'bank', status: 'approved', createdAt: '2024-01-12', updatedAt: '2024-01-12' },
+  { id: '3', employeeId: 'EMP003', employeeName: '王五', departmentId: '5', expenseType: 'income', category: 'salary', amount: 8000, date: '2024-01-15', description: '1月份工资', paymentMethod: 'bank', status: 'approved', createdAt: '2024-01-15', updatedAt: '2024-01-15' },
+  { id: '4', employeeId: 'EMP004', employeeName: '赵六', departmentId: '8', expenseType: 'expense', category: 'equipment', amount: 2800, date: '2024-01-18', description: '购买打印机', paymentMethod: 'bank', status: 'pending', createdAt: '2024-01-18', updatedAt: '2024-01-18' },
+  { id: '5', employeeId: 'EMP001', employeeName: '张三', departmentId: '1', expenseType: 'income', category: 'bonus', amount: 2000, date: '2024-01-20', description: '年终奖金', paymentMethod: 'bank', status: 'pending', createdAt: '2024-01-20', updatedAt: '2024-01-20' },
 ];

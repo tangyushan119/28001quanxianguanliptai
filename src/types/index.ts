@@ -223,3 +223,32 @@ export interface FieldRecordFormData {
   expenses?: string;
   status: 'completed' | 'pending' | 'cancelled';
 }
+
+export interface ExpenseRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  expenseType: 'income' | 'expense';
+  category: string;
+  amount: number;
+  date: string;
+  description: string;
+  paymentMethod: 'cash' | 'bank' | 'card' | 'other';
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseRecordFormData {
+  employeeId: string;
+  employeeName: string;
+  departmentId: string;
+  expenseType: 'income' | 'expense';
+  category: string;
+  amount: string;
+  date: string;
+  description: string;
+  paymentMethod: 'cash' | 'bank' | 'card' | 'other';
+  status: 'pending' | 'approved' | 'rejected';
+}

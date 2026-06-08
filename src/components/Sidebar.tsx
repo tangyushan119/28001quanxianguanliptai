@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Database, LogOut, Globe, Building2, Users, Package, Clock } from 'lucide-react';
+import { LayoutDashboard, Database, LogOut, Globe, Building2, Users, Package, Clock, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
@@ -9,6 +9,7 @@ const menuItems = [
   { path: '/employee-management', icon: Users, label: '人员档案管理' },
   { path: '/asset-management', icon: Package, label: '资产管理' },
   { path: '/duty-record', icon: Clock, label: '勤务记录管理' },
+  { path: '/expense-management', icon: DollarSign, label: '经费收支管理' },
 ];
 
 export default function Sidebar() {
