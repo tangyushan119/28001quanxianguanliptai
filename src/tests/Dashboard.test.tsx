@@ -182,10 +182,60 @@ describe('Dashboard Page', () => {
     });
   });
 
-  it('renders change indicators with correct colors', async () => {
+  it('renders cards with correct hoverable styles', async () => {
     render(<Dashboard />, { wrapper });
     
     const cards = document.querySelectorAll('.hover\\:shadow-xl');
     expect(cards.length).toBeGreaterThan(0);
+  });
+
+  it('renders quick action cards with consistent layout', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const quickActionCards = document.querySelectorAll('[class*="cursor-pointer"]');
+    expect(quickActionCards.length).toBe(6);
+  });
+
+  it('applies correct grid layout for quick actions', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const quickActionsContainer = screen.getByText('功能入口').parentElement?.nextElementSibling;
+    expect(quickActionsContainer).toHaveClass('grid');
+  });
+
+  it('renders all department stats with count and percentage', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const departmentStats = [
+      { name: '县政府办公室', count: 45 },
+      { name: '发展和改革局', count: 35 },
+      { name: '财政局', count: 40 },
+      { name: '人社局', count: 30 },
+    ];
+    
+    departmentStats.forEach(stat => {
+      expect(screen.getByText(stat.name)).toBeInTheDocument();
+      expect(screen.getByText(`${stat.count}人`)).toBeInTheDocument();
+    });
+  });
+
+  it('renders correct change indicators for statistics', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const positiveChange = screen.getByText('2.3%');
+    const negativeChange = screen.getByText('1.2%');
+    
+    expect(positiveChange).toBeInTheDocument();
+    expect(negativeChange).toBeInTheDocument();
+  });
+
+  it('renders data trend chart with 12 months', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const monthLabels = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+    
+    monthLabels.forEach(label => {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
   });
 });

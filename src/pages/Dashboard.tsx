@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp, Users, Building2, Activity, ArrowUpRight, ArrowDownRight,
@@ -123,6 +123,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -130,6 +131,37 @@ export default function Dashboard() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (containerRef.current) {
+      const container = containerRef.current;
+      const isAtTop = container.scrollTop === 0;
+      const isAtBottom = container.scrollTop >= container.scrollHeight - container.clientHeight;
+      
+      if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+        e.preventDefault();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      
+      return () => {
+        container.removeEventListener('wheel', handleWheel);
+        container.removeEventListener('touchmove', handleTouchMove);
+      };
+    }
+  }, [handleWheel, handleTouchMove]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -145,163 +177,197 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">数据仪表盘</h1>
-        <div className="flex items-center gap-4 text-gray-500">
-          <span>{currentTime.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
-          <span className="w-1 h-1 bg-gray-400 rounded-full" />
-          <span>{currentTime.toLocaleTimeString('zh-CN')}</span>
-          {user && (
-            <>
-              <span className="w-1 h-1 bg-gray-400 rounded-full" />
-              <span>当前用户: {user.username} ({user.role === 'admin' ? '管理员' : '普通用户'})</span>
-            </>
-          )}
+    <div 
+      ref={containerRef}
+      className="min-h-screen bg-gray-50 overflow-y-auto scroll-smooth"
+      style={{
+        overscrollBehaviorY: 'contain',
+      }}
+    >
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2 sm:mb-3">
+            数据仪表盘
+          </h1>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm sm:text-base text-gray-500">
+            <span>
+              {currentTime.toLocaleDateString('zh-CN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+              })}
+            </span>
+            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0" />
+            <span>{currentTime.toLocaleTimeString('zh-CN')}</span>
+            {user && (
+              <>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0" />
+                <span>当前用户: {user.username} ({user.role === 'admin' ? '管理员' : '普通用户'})</span>
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">功能入口</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
+            功能入口
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Card 
+                  key={action.id} 
+                  hoverable 
+                  className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group min-h-[140px] sm:min-h-[150px] flex flex-col justify-center"
+                  onClick={() => handleActionClick(action.route)}
+                >
+                  <CardBody className="flex flex-col items-center text-center p-4 sm:p-5 lg:p-6 h-full">
+                    <div className={`w-12 h-12 sm:w-14 sm:h-14 ${action.bgColor} rounded-xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${action.color.replace('bg-', 'text-')}`} />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-1 sm:mb-1.5 text-sm sm:text-base">
+                      {action.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500">{action.description}</p>
+                  </CardBody>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            const isPositive = card.change >= 0;
             return (
-              <Card 
-                key={action.id} 
-                hoverable 
-                className="cursor-pointer transition-all hover:shadow-lg group"
-                onClick={() => handleActionClick(action.route)}
-              >
-                <CardBody className="flex flex-col items-center text-center p-6">
-                  <div className={`w-14 h-14 ${action.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-7 h-7 ${action.color.replace('bg-', 'text-')}`} />
+              <Card key={card.title} hoverable className="shadow-sm min-h-[160px]">
+                <CardBody className="h-full flex flex-col">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-11 h-11 sm:w-12 sm:h-12 ${card.bgColor} rounded-xl flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${card.color.replace('bg-', 'text-')}`} />
+                    </div>
+                    <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                      {isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                      <span>{Math.abs(card.change)}%</span>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-gray-800 mb-1">{action.title}</h3>
-                  <p className="text-sm text-gray-500">{action.description}</p>
+                  <div className="flex-1 flex flex-col justify-end">
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
+                      {card.value.toLocaleString()}
+                      <span className="text-sm sm:text-base font-normal text-gray-500 ml-1">{card.unit}</span>
+                    </div>
+                    <p className="text-sm text-gray-500">{card.title}</p>
+                  </div>
                 </CardBody>
               </Card>
             );
           })}
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          const isPositive = card.change >= 0;
-          return (
-            <Card key={card.title} hoverable className="shadow-sm">
-              <CardBody>
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 ${card.bgColor} rounded-xl flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 ${card.color.replace('bg-', 'text-')}`} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="lg:col-span-2 shadow-sm">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle>数据趋势</CardTitle>
+                <CardSubtitle>近12个月数据变化</CardSubtitle>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <div className="h-52 sm:h-64 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-4">
+                {[45, 68, 42, 75, 55, 80, 65, 90, 72, 85, 68, 95].map((height, index) => (
+                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                    <div 
+                      className="w-full bg-gradient-to-t from-primary-500 to-accent-400 rounded-t-lg transition-all duration-300 hover:from-primary-600 hover:to-accent-500" 
+                      style={{ height: `${height}%`, minHeight: '20px' }} 
+                    />
+                    <span className="text-xs text-gray-500 whitespace-nowrap">{index + 1}月</span>
                   </div>
-                  <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                    {isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                    <span>{Math.abs(card.change)}%</span>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-gray-800 mb-1">
-                  {card.value.toLocaleString()}
-                  <span className="text-base font-normal text-gray-500 ml-1">{card.unit}</span>
-                </div>
-                <p className="text-gray-500 text-sm">{card.title}</p>
-              </CardBody>
-            </Card>
-          );
-        })}
-      </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 shadow-sm">
-          <CardHeader>
-            <CardTitle>数据趋势</CardTitle>
-            <CardSubtitle>近12个月数据变化</CardSubtitle>
-          </CardHeader>
-          <CardBody>
-            <div className="h-64 flex items-end justify-between gap-4 px-4">
-              {[45, 68, 42, 75, 55, 80, 65, 90, 72, 85, 68, 95].map((height, index) => (
-                <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-gradient-to-t from-primary-500 to-accent-400 rounded-t-lg transition-all hover:from-primary-600 hover:to-accent-500" style={{ height: `${height}%` }} />
-                  <span className="text-xs text-gray-500">{index + 1}月</span>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>部门分布</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-3 sm:space-y-4">
+                {departmentStats.map((item) => (
+                  <div key={item.name}>
+                    <div className="flex justify-between mb-1.5">
+                      <span className="text-sm text-gray-600">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-800">{item.count}人</span>
+                    </div>
+                    <div className="h-2.5 sm:h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary-400 to-accent-400 rounded-full transition-all duration-500" 
+                        style={{ width: `${item.percentage}%` }} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>部门分布</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              {departmentStats.map((item) => (
-                <div key={item.name}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">{item.name}</span>
-                    <span className="text-sm font-medium text-gray-800">{item.count}人</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>分类占比</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-3 sm:space-y-4">
+                {[
+                  { name: '农业', percentage: 35, color: 'bg-green-500' },
+                  { name: '工业', percentage: 40, color: 'bg-blue-500' },
+                  { name: '服务业', percentage: 25, color: 'bg-purple-500' },
+                ].map((item) => (
+                  <div key={item.name}>
+                    <div className="flex justify-between mb-1.5">
+                      <span className="text-sm text-gray-600">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-800">{item.percentage}%</span>
+                    </div>
+                    <div className="h-2.5 sm:h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${item.color} rounded-full transition-all duration-500`} 
+                        style={{ width: `${item.percentage}%` }} 
+                      />
+                    </div>
                   </div>
-                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-primary-400 to-accent-400 rounded-full transition-all duration-500" style={{ width: `${item.percentage}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>分类占比</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              {[
-                { name: '农业', percentage: 35, color: 'bg-green-500' },
-                { name: '工业', percentage: 40, color: 'bg-blue-500' },
-                { name: '服务业', percentage: 25, color: 'bg-purple-500' },
-              ].map((item) => (
-                <div key={item.name}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">{item.name}</span>
-                    <span className="text-sm font-medium text-gray-800">{item.percentage}%</span>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>最近动态</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-3 sm:space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3">
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 ${getStatusColor(activity.status)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                      {activity.type === '创建' && <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                      {activity.type === '更新' && <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                      {activity.type === '审批' && <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                      {activity.type === '删除' && <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-800 truncate">{activity.content}</p>
+                      <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full ${item.color} rounded-full transition-all duration-500`} style={{ width: `${item.percentage}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>最近动态</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <div className={`w-8 h-8 ${getStatusColor(activity.status)} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                    {activity.type === '创建' && <ClipboardList className="w-4 h-4" />}
-                    {activity.type === '更新' && <Settings className="w-4 h-4" />}
-                    {activity.type === '审批' && <BarChart3 className="w-4 h-4" />}
-                    {activity.type === '删除' && <AlertCircle className="w-4 h-4" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800">{activity.content}</p>
-                    <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </div>
   );

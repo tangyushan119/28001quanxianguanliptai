@@ -17,22 +17,24 @@ export default function Card({
   shadow = 'md',
   onClick,
 }: CardProps) {
-  const baseStyles = 'bg-white rounded-xl border border-gray-100 overflow-hidden';
+  const baseStyles = 'bg-white rounded-2xl border border-gray-100 overflow-hidden';
   
-  const hoverStyles = hoverable ? 'hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300' : '';
+  const hoverStyles = hoverable 
+    ? 'hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ease-out' 
+    : '';
   
   const paddingStyles = {
     none: '',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-6',
+    sm: 'p-3',
+    md: 'p-4',
+    lg: 'p-5',
   };
 
   const shadowStyles = {
     none: 'shadow-none',
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg',
+    sm: 'shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)]',
+    md: 'shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)]',
+    lg: 'shadow-[0_4px_16px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)]',
   };
 
   return (
@@ -65,7 +67,7 @@ interface CardTitleProps {
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
   return (
-    <h2 className={`text-lg font-semibold text-gray-800 leading-tight ${className}`}>
+    <h2 className={`text-base sm:text-lg font-semibold text-gray-800 leading-tight ${className}`}>
       {children}
     </h2>
   );
@@ -78,7 +80,7 @@ interface CardSubtitleProps {
 
 export function CardSubtitle({ children, className = '' }: CardSubtitleProps) {
   return (
-    <p className={`text-sm text-gray-500 mt-1 ${className}`}>
+    <p className={`text-xs sm:text-sm text-gray-500 mt-1 ${className}`}>
       {children}
     </p>
   );
