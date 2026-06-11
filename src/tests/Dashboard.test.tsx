@@ -265,21 +265,28 @@ describe('Dashboard Page', () => {
     expect(mainContent).toHaveClass('mt-[104px]');
   });
 
-  it('main content has proper padding for left sidebar', () => {
+  it('main content has proper margin for left sidebar', () => {
     render(<Dashboard />, { wrapper });
     
     const mainContent = document.querySelector('main');
-    expect(mainContent).toHaveClass('pl-[268px]');
+    expect(mainContent).toHaveClass('ml-[268px]!');
     expect(mainContent).toHaveClass('pr-6');
     expect(mainContent).toHaveClass('sm:pr-8');
     expect(mainContent).toHaveClass('lg:pr-12');
   });
 
-  it('main content left padding matches sidebar width', () => {
+  it('main content left margin matches sidebar width', () => {
     render(<Dashboard />, { wrapper });
     
     const mainContent = document.querySelector('main');
-    expect(mainContent).toHaveClass('pl-[268px]');
+    expect(mainContent).toHaveClass('ml-[268px]!');
+  });
+
+  it('main content has inline style margin-left set', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const mainContent = document.querySelector('main');
+    expect(mainContent).toHaveStyle({ marginLeft: '268px' });
   });
 
   it('right-side cards have proper left padding on large screens', () => {
