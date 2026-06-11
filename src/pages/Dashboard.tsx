@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, Building2, Activity, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import {
+  TrendingUp, Users, Building2, Activity, ArrowUpRight, ArrowDownRight,
+  FolderOpen, Users2, FileText, Settings, Database, BarChart3,
+  Calendar, ClipboardList, AlertCircle
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components';
+import { Card, CardHeader, CardTitle, CardBody, CardSubtitle } from '@/components';
 
 const statCards = [
   {
@@ -42,6 +46,78 @@ const statCards = [
   },
 ];
 
+const quickActions = [
+  {
+    id: '1',
+    title: '数据管理',
+    description: '管理平台数据',
+    icon: Database,
+    color: 'bg-blue-500',
+    bgColor: 'bg-blue-50',
+    route: '/data-management',
+  },
+  {
+    id: '2',
+    title: '员工管理',
+    description: '管理员工信息',
+    icon: Users2,
+    color: 'bg-green-500',
+    bgColor: 'bg-green-50',
+    route: '/employee-management',
+  },
+  {
+    id: '3',
+    title: '资产管理',
+    description: '管理资产设备',
+    icon: FolderOpen,
+    color: 'bg-purple-500',
+    bgColor: 'bg-purple-50',
+    route: '/asset-management',
+  },
+  {
+    id: '4',
+    title: '组织管理',
+    description: '管理组织结构',
+    icon: Building2,
+    color: 'bg-orange-500',
+    bgColor: 'bg-orange-50',
+    route: '/organization-management',
+  },
+  {
+    id: '5',
+    title: '考勤记录',
+    description: '管理值班记录',
+    icon: Calendar,
+    color: 'bg-red-500',
+    bgColor: 'bg-red-50',
+    route: '/duty-record-management',
+  },
+  {
+    id: '6',
+    title: '费用管理',
+    description: '管理费用报销',
+    icon: FileText,
+    color: 'bg-cyan-500',
+    bgColor: 'bg-cyan-50',
+    route: '/expense-management',
+  },
+];
+
+const recentActivities = [
+  { id: '1', type: '创建', content: '新增员工记录: 李四', time: '2小时前', status: 'success' },
+  { id: '2', type: '更新', content: '更新资产信息: 打印机 EQ003', time: '5小时前', status: 'warning' },
+  { id: '3', type: '审批', content: '审批费用报销: 张三 500元', time: '1天前', status: 'success' },
+  { id: '4', type: '创建', content: '新增值班记录: 王五', time: '1天前', status: 'info' },
+  { id: '5', type: '删除', content: '删除部门: 国库科', time: '2天前', status: 'danger' },
+];
+
+const departmentStats = [
+  { name: '县政府办公室', count: 45, percentage: 30 },
+  { name: '发展和改革局', count: 35, percentage: 23 },
+  { name: '财政局', count: 40, percentage: 27 },
+  { name: '人社局', count: 30, percentage: 20 },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -52,6 +128,15 @@ export default function Dashboard() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success': return 'text-green-500 bg-green-50';
+      case 'warning': return 'text-yellow-500 bg-yellow-50';
+      case 'danger': return 'text-red-500 bg-red-50';
+      default: return 'text-blue-500 bg-blue-50';
+    }
+  };
 
   return (
     <div className="p-8">
@@ -70,12 +155,32 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">功能入口</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Card key={action.id} hoverable className="cursor-pointer transition-all hover:shadow-lg group">
+                <CardBody className="flex flex-col items-center text-center p-6">
+                  <div className={`w-14 h-14 ${action.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <Icon className={`w-7 h-7 ${action.color.replace('bg-', 'text-')}`} />
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-1">{action.title}</h3>
+                  <p className="text-sm text-gray-500">{action.description}</p>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((card) => {
           const Icon = card.icon;
           const isPositive = card.change >= 0;
           return (
-            <Card key={card.title} hoverable padding="md" className="shadow-sm">
+            <Card key={card.title} hoverable className="shadow-sm">
               <CardBody>
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-12 h-12 ${card.bgColor} rounded-xl flex items-center justify-center`}>
@@ -101,6 +206,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2 shadow-sm">
           <CardHeader>
             <CardTitle>数据趋势</CardTitle>
+            <CardSubtitle>近12个月数据变化</CardSubtitle>
           </CardHeader>
           <CardBody>
             <div className="h-64 flex items-end justify-between gap-4 px-4">
@@ -114,6 +220,29 @@ export default function Dashboard() {
           </CardBody>
         </Card>
 
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>部门分布</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-4">
+              {departmentStats.map((item) => (
+                <div key={item.name}>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-gray-600">{item.name}</span>
+                    <span className="text-sm font-medium text-gray-800">{item.count}人</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-primary-400 to-accent-400 rounded-full transition-all duration-500" style={{ width: `${item.percentage}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>分类占比</CardTitle>
@@ -132,6 +261,30 @@ export default function Dashboard() {
                   </div>
                   <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                     <div className={`h-full ${item.color} rounded-full transition-all duration-500`} style={{ width: `${item.percentage}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>最近动态</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className={`w-8 h-8 ${getStatusColor(activity.status)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    {activity.type === '创建' && <ClipboardList className="w-4 h-4" />}
+                    {activity.type === '更新' && <Settings className="w-4 h-4" />}
+                    {activity.type === '审批' && <BarChart3 className="w-4 h-4" />}
+                    {activity.type === '删除' && <AlertCircle className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-800">{activity.content}</p>
+                    <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
                   </div>
                 </div>
               ))}
