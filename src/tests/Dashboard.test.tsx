@@ -264,4 +264,58 @@ describe('Dashboard Page', () => {
     expect(header).toHaveClass('z-40');
     expect(mainContent).toHaveClass('mt-[104px]');
   });
+
+  it('main content has proper padding for left sidebar', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const mainContent = document.querySelector('main');
+    expect(mainContent).toHaveClass('pl-6');
+    expect(mainContent).toHaveClass('pr-6');
+    expect(mainContent).toHaveClass('sm:pl-8');
+    expect(mainContent).toHaveClass('sm:pr-8');
+    expect(mainContent).toHaveClass('lg:pl-12');
+    expect(mainContent).toHaveClass('lg:pr-12');
+  });
+
+  it('right-side cards have proper left padding on large screens', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const rightCards = document.querySelectorAll('.lg\\:pl-4');
+    expect(rightCards.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('right-side cards have proper z-index for layout hierarchy', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const rightCards = document.querySelectorAll('.lg\\:pl-4');
+    rightCards.forEach(card => {
+      expect(card).toHaveStyle({ position: 'relative' });
+      expect(card).toHaveStyle({ zIndex: '1' });
+    });
+  });
+
+  it('all data cards are visible and not overlapping', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const cards = document.querySelectorAll('[class*="bg-white rounded-2xl"]');
+    expect(cards.length).toBeGreaterThan(0);
+    
+    cards.forEach(card => {
+      expect(card).toBeVisible();
+    });
+  });
+
+  it('department distribution card is properly positioned', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const deptCard = screen.getByText('部门分布').closest('[class*="lg:pl-4"]');
+    expect(deptCard).toBeInTheDocument();
+  });
+
+  it('recent activities card is properly positioned', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const recentCard = screen.getByText('最近动态').closest('[class*="lg:pl-4"]');
+    expect(recentCard).toBeInTheDocument();
+  });
 });

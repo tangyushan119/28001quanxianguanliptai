@@ -208,7 +208,7 @@ export default function Dashboard() {
 
       <main 
         ref={contentRef}
-        className="flex-1 overflow-y-auto mt-[104px] px-6 sm:px-8 lg:px-12 pb-8"
+        className="flex-1 overflow-y-auto mt-[104px] pl-6 pr-6 sm:pl-8 sm:pr-8 lg:pl-12 lg:pr-12 pb-8"
         style={{
           overscrollBehaviorY: 'contain',
         }}
@@ -295,7 +295,7 @@ export default function Dashboard() {
               </CardBody>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm lg:pl-4" style={{ position: 'relative', zIndex: 1 }}>
               <CardHeader>
                 <CardTitle>部门分布</CardTitle>
               </CardHeader>
@@ -349,7 +349,7 @@ export default function Dashboard() {
               </CardBody>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm lg:pl-4" style={{ position: 'relative', zIndex: 1 }}>
               <CardHeader>
                 <CardTitle>最近动态</CardTitle>
               </CardHeader>
