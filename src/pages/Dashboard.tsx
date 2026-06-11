@@ -208,10 +208,9 @@ export default function Dashboard() {
 
       <main 
         ref={contentRef}
-        className="flex-1 overflow-y-auto mt-[104px] ml-[268px]! pr-6 sm:pr-8 lg:pr-12 pb-8"
+        className="flex-1 overflow-y-auto mt-[104px] ml-[268px] pr-6 sm:pr-8 lg:pr-12 pb-8"
         style={{
           overscrollBehaviorY: 'contain',
-          marginLeft: '268px',
         }}
       >
         <div className="max-w-[1920px] mx-auto">
