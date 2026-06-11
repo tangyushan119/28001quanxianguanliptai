@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, MouseEventHandler } from 'react';
 
 interface CardProps {
   children: ReactNode;
@@ -6,6 +6,7 @@ interface CardProps {
   hoverable?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   shadow?: 'none' | 'sm' | 'md' | 'lg';
+  onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
 export default function Card({
@@ -14,6 +15,7 @@ export default function Card({
   hoverable = false,
   padding = 'lg',
   shadow = 'md',
+  onClick,
 }: CardProps) {
   const baseStyles = 'bg-white rounded-xl border border-gray-100 overflow-hidden';
   
@@ -34,7 +36,10 @@ export default function Card({
   };
 
   return (
-    <div className={`${baseStyles} ${hoverStyles} ${paddingStyles[padding]} ${shadowStyles[shadow]} ${className}`}>
+    <div 
+      className={`${baseStyles} ${hoverStyles} ${paddingStyles[padding]} ${shadowStyles[shadow]} ${className}`}
+      onClick={onClick}
+    >
       {children}
     </div>
   );
