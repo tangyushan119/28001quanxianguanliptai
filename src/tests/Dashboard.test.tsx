@@ -269,12 +269,17 @@ describe('Dashboard Page', () => {
     render(<Dashboard />, { wrapper });
     
     const mainContent = document.querySelector('main');
-    expect(mainContent).toHaveClass('pl-6');
+    expect(mainContent).toHaveClass('pl-[268px]');
     expect(mainContent).toHaveClass('pr-6');
-    expect(mainContent).toHaveClass('sm:pl-8');
     expect(mainContent).toHaveClass('sm:pr-8');
-    expect(mainContent).toHaveClass('lg:pl-12');
     expect(mainContent).toHaveClass('lg:pr-12');
+  });
+
+  it('main content left padding matches sidebar width', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const mainContent = document.querySelector('main');
+    expect(mainContent).toHaveClass('pl-[268px]');
   });
 
   it('right-side cards have proper left padding on large screens', () => {
