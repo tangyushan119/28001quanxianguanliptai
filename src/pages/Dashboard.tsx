@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp, Users, Building2, Activity, ArrowUpRight, ArrowDownRight,
   FolderOpen, Users2, FileText, Settings, Database, BarChart3,
@@ -121,6 +122,7 @@ const departmentStats = [
 export default function Dashboard() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -136,6 +138,10 @@ export default function Dashboard() {
       case 'danger': return 'text-red-500 bg-red-50';
       default: return 'text-blue-500 bg-blue-50';
     }
+  };
+
+  const handleActionClick = (route: string) => {
+    navigate(route);
   };
 
   return (
@@ -161,7 +167,12 @@ export default function Dashboard() {
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
-              <Card key={action.id} hoverable className="cursor-pointer transition-all hover:shadow-lg group">
+              <Card 
+                key={action.id} 
+                hoverable 
+                className="cursor-pointer transition-all hover:shadow-lg group"
+                onClick={() => handleActionClick(action.route)}
+              >
                 <CardBody className="flex flex-col items-center text-center p-6">
                   <div className={`w-14 h-14 ${action.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <Icon className={`w-7 h-7 ${action.color.replace('bg-', 'text-')}`} />

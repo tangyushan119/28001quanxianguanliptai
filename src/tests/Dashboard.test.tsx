@@ -1,7 +1,14 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../pages/Dashboard';
 import { AuthProvider } from '../contexts/AuthContext';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <MemoryRouter>
@@ -12,6 +19,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('Dashboard Page', () => {
   beforeEach(() => {
     localStorage.clear();
+    jest.clearAllMocks();
   });
 
   it('renders dashboard title correctly', () => {
@@ -47,12 +55,65 @@ describe('Dashboard Page', () => {
   it('renders all 6 quick action cards', () => {
     render(<Dashboard />, { wrapper });
     
-    const actionCards = screen.getAllByRole('button');
     const quickActionTitles = ['数据管理', '员工管理', '资产管理', '组织管理', '考勤记录', '费用管理'];
     
     quickActionTitles.forEach(title => {
       expect(screen.getByText(title)).toBeInTheDocument();
     });
+  });
+
+  it('navigates to data-management when 数据管理 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const dataManagementCard = screen.getByText('数据管理').closest('div');
+    fireEvent.click(dataManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/data-management');
+  });
+
+  it('navigates to employee-management when 员工管理 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const employeeManagementCard = screen.getByText('员工管理').closest('div');
+    fireEvent.click(employeeManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/employee-management');
+  });
+
+  it('navigates to asset-management when 资产管理 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const assetManagementCard = screen.getByText('资产管理').closest('div');
+    fireEvent.click(assetManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/asset-management');
+  });
+
+  it('navigates to organization-management when 组织管理 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const organizationManagementCard = screen.getByText('组织管理').closest('div');
+    fireEvent.click(organizationManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/organization-management');
+  });
+
+  it('navigates to duty-record-management when 考勤记录 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const dutyRecordManagementCard = screen.getByText('考勤记录').closest('div');
+    fireEvent.click(dutyRecordManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/duty-record-management');
+  });
+
+  it('navigates to expense-management when 费用管理 card is clicked', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const expenseManagementCard = screen.getByText('费用管理').closest('div');
+    fireEvent.click(expenseManagementCard!);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/expense-management');
   });
 
   it('renders statistic cards', () => {
