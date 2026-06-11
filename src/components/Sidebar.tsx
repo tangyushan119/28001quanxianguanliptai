@@ -23,7 +23,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white flex flex-col">
+    <aside className="fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-primary-900 to-primary-800 text-white flex flex-col z-50">
       <div className="p-6 border-b border-primary-700">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-accent-400 to-accent-600 rounded-lg flex items-center justify-center">
@@ -36,7 +36,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;

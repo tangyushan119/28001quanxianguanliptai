@@ -238,4 +238,30 @@ describe('Dashboard Page', () => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
   });
+
+  it('has fixed header element', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const header = document.querySelector('header');
+    expect(header).toBeInTheDocument();
+    expect(header).toHaveClass('fixed');
+  });
+
+  it('has scrollable main content area', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const mainContent = document.querySelector('main');
+    expect(mainContent).toBeInTheDocument();
+    expect(mainContent).toHaveClass('overflow-y-auto');
+  });
+
+  it('header stays above main content', () => {
+    render(<Dashboard />, { wrapper });
+    
+    const header = document.querySelector('header');
+    const mainContent = document.querySelector('main');
+    
+    expect(header).toHaveClass('z-40');
+    expect(mainContent).toHaveClass('mt-[104px]');
+  });
 });
